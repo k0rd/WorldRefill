@@ -22,6 +22,7 @@ namespace WorldRefill
             Commands.ChatCommands.Add(new Command("causeevents", DoOrbs, "genorbs"));         //Orbs
             Commands.ChatCommands.Add(new Command("causeevents", DoAltars, "genaltars"));     //Demon Altars
             Commands.ChatCommands.Add(new Command("causeevents", DoTraps, "gentraps"));       //Traps
+            Commands.ChatCommands.Add(new Command("causeevents", DoStatues, "genstatues"));   //Statues
         }
 
         protected override void Dispose(bool disposing)
@@ -184,7 +185,7 @@ namespace WorldRefill
                 var mTrap = Int32.Parse(args.Parameters[0]);
                 var surface = Main.worldSurface;
                 var trycount = 0;
-                const int maxtries = 1000000;
+                const int maxtries = 4000;
                 var realcount = 0;
                 while (trycount < maxtries)
                 {
@@ -208,7 +209,49 @@ namespace WorldRefill
                 args.Player.SendMessage(string.Format("Usage: /gentraps (number of Traps to generate)"));
             }
         }
+        private void DoStatues(CommandArgs args)
+        {
+            if (args.Parameters.Count == 1)
+            {
+                args.Player.SendMessage("Generating statues.. this may take a while..");
+                var mStatue = Int32.Parse(args.Parameters[0]);
+                var surface = Main.worldSurface;
+                var trycount = 0;
+                const int maxtries = 4000;
+                var realcount = 0;
+                while (trycount < maxtries)
+                {
+                    var tryX = WorldGen.genRand.Next(20, Main.maxTilesX -20);
+                    var tryY = WorldGen.genRand.Next((int)surface + 20, Main.maxTilesY -300);
+                    var tryType = WorldGen.genRand.Next((int) 2, 44);
+                   
+                    while (!Main.tile[tryX, tryY].active)
+                    {
+                        tryY++;
+                    }
+                    tryY--;
 
+                    if (tryY < Main.maxTilesY - 300)
+                    {
+
+                        WorldGen.PlaceTile(tryX, tryY, 105, true, true, -1, tryType);
+
+                        if (Main.tile[tryX, tryY].type == 105)
+                        {
+                            realcount++;
+                            if (realcount == mStatue)
+                                break;
+                        }
+                    }
+                    trycount++;
+                }
+                args.Player.SendMessage(string.Format("Generated and hid {0} Statues.", realcount));
+            }
+            else
+            {
+                args.Player.SendMessage(string.Format("Usage: /genstatues (number of statues to generate)"));
+            }
+        }
 
     }
 }
