@@ -21,6 +21,7 @@ namespace WorldRefill
             Commands.ChatCommands.Add(new Command("causeevents", DoPots, "genpots"));         //Pots
             Commands.ChatCommands.Add(new Command("causeevents", DoOrbs, "genorbs"));         //Orbs
             Commands.ChatCommands.Add(new Command("causeevents", DoAltars, "genaltars"));     //Demon Altars
+            Commands.ChatCommands.Add(new Command("causeevents", DoTraps, "gentraps"));       //Traps
         }
 
         protected override void Dispose(bool disposing)
@@ -173,6 +174,38 @@ namespace WorldRefill
             else
             {
                 args.Player.SendMessage(string.Format("Usage: /genaltars (number of Demon Altars to generate)"));
+            }
+        }
+        private void DoTraps(CommandArgs args)
+        {
+            if (args.Parameters.Count == 1)
+            {
+                args.Player.SendMessage("Generating traps.. this may take a while..");
+                var mTrap = Int32.Parse(args.Parameters[0]);
+                var surface = Main.worldSurface;
+                var trycount = 0;
+                const int maxtries = 1000000;
+                var realcount = 0;
+                while (trycount < maxtries)
+                {
+                    var tryX = WorldGen.genRand.Next(200, Main.maxTilesX -200);
+                    var tryY = WorldGen.genRand.Next((int)surface, Main.maxTilesY -300);
+
+                  
+                    if (Main.tile[tryX, tryY].wall == 0 && WorldGen.placeTrap(tryX, tryY, -1))
+                    {
+                        realcount++;
+                        if (realcount == mTrap)
+                            break;
+                    }
+
+                    trycount++;
+                }
+                args.Player.SendMessage(string.Format("Generated and hid {0} traps.", realcount));
+            }
+            else
+            {
+                args.Player.SendMessage(string.Format("Usage: /gentraps (number of Traps to generate)"));
             }
         }
 
