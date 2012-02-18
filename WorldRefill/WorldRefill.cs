@@ -18,6 +18,7 @@ namespace WorldRefill
         public override void Initialize()
         {
             Commands.ChatCommands.Add(new Command("causeevents", DoCrystals, "gencrystals")); //Life Crystals
+            Commands.ChatCommands.Add(new Command("causeevents", DoPots, "genpots")); //Pots
         }
 
         protected override void Dispose(bool disposing)
@@ -57,7 +58,7 @@ namespace WorldRefill
                 var mCry = Int32.Parse(args.Parameters[0]);
                 var surface = Main.worldSurface;
                 var trycount = 0;
-                const int maxtries = 100000;
+                const int maxtries = 1000000;
                 var realcount = 0;
 
                 while (trycount < maxtries)
@@ -77,6 +78,39 @@ namespace WorldRefill
                 args.Player.SendMessage(string.Format("Usage: /gencrystals (number of crystals to generate)"));
             }
             
+        }
+
+        private void DoPots(CommandArgs args)
+        {
+            if (args.Parameters.Count == 1)
+            {
+
+                var mPot = Int32.Parse(args.Parameters[0]);
+                var surface = Main.worldSurface;
+                var trycount = 0;
+                const int maxtries = 1000000;
+                var realcount = 0;
+                while (trycount < maxtries)
+                {
+                    var tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
+                    var tryY = WorldGen.genRand.Next((int) surface - 10, Main.maxTilesY);
+
+
+                        if (WorldGen.PlacePot(tryX,tryY, 28))
+                        {
+                            realcount++;
+                            if (realcount == mPot)
+                                break;
+                        }
+                        trycount++;
+
+                }
+                args.Player.SendMessage(string.Format("Generated and hid {0} Pots.", realcount));
+            }
+            else
+            {
+                args.Player.SendMessage(string.Format("Usage: /genpots (number of pots to generate)"));
+            }
         }
     }
 }
