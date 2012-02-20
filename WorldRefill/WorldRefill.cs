@@ -50,6 +50,18 @@ namespace WorldRefill
         {
             get { return "Refill your world!"; }
         }
+        public void InformPlayers()
+        {
+            foreach (TSPlayer person in TShock.Players)
+            {
+                if ((person != null) && (person.Active))
+                {
+                    person.SendMessage("The server is sending you new map data due to world restock...");
+                    person.SendTileSquare(person.TileX, person.TileY, 50);
+                }
+            }
+
+        }
         private void DoCrystals(CommandArgs args)
         {
 
@@ -71,7 +83,7 @@ namespace WorldRefill
                     trycount++;
                 }
                 args.Player.SendMessage(string.Format("Generated and hid {0} Life Crystals.",realcount));
-
+                InformPlayers();
             }
             else
             {
@@ -104,6 +116,7 @@ namespace WorldRefill
 
                 }
                 args.Player.SendMessage(string.Format("Generated and hid {0} Pots.", realcount));
+                InformPlayers();
             }
             else
             {
@@ -138,6 +151,7 @@ namespace WorldRefill
                     }
                     trycount++;
                 }
+                InformPlayers();
                 args.Player.SendMessage(string.Format("Generated and hid {0} Orbs.", realcount));
             }
             else
@@ -170,6 +184,7 @@ namespace WorldRefill
                     
                     trycount++;
                 }
+                InformPlayers();
                 args.Player.SendMessage(string.Format("Generated and hid {0} Demon Altars.", realcount));
             }
             else
@@ -202,6 +217,7 @@ namespace WorldRefill
 
                     trycount++;
                 }
+                InformPlayers();
                 args.Player.SendMessage(string.Format("Generated and hid {0} traps.", realcount));
             }
             else
@@ -246,6 +262,7 @@ namespace WorldRefill
                     trycount++;
                 }
                 args.Player.SendMessage(string.Format("Generated and hid {0} Statues.", realcount));
+                InformPlayers();
             }
             else if (args.Parameters.Count == 2)
             {
@@ -343,6 +360,7 @@ namespace WorldRefill
                         trycount++;
                     }
                     args.Player.SendMessage(string.Format("Generated and hid {0} {1} ({2})Statues.", realcount, found, stid));
+                    InformPlayers();
                 }
                 else
                 {
