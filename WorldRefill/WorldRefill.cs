@@ -217,7 +217,7 @@ namespace WorldRefill
                 var mStatue = Int32.Parse(args.Parameters[0]);
                 var surface = Main.worldSurface;
                 var trycount = 0;
-                const int maxtries = 4000;
+                const int maxtries = 100000;
                 var realcount = 0;
                 while (trycount < maxtries)
                 {
@@ -247,9 +247,111 @@ namespace WorldRefill
                 }
                 args.Player.SendMessage(string.Format("Generated and hid {0} Statues.", realcount));
             }
+            else if (args.Parameters.Count == 2)
+            {
+                List<string> types = new List<string>();
+
+                types.Add("Armor");
+                types.Add("Angel");
+                types.Add("Star");
+                types.Add("Sword");
+                types.Add("Slime");
+                types.Add("Goblin");
+                types.Add("Shield");
+                types.Add("Bat");
+                types.Add("Fish");
+                types.Add("Bunny");
+                types.Add("Skeleton");
+                types.Add("Reaper");
+                types.Add("Woman");
+                types.Add("Imp");
+                types.Add("Gargoyle");
+                types.Add("Gloom");
+                types.Add("Hornet");
+                types.Add("Bomb");
+                types.Add("Crab");
+                types.Add("Hammer");
+                types.Add("Potion");
+                types.Add("Spear");
+                types.Add("Cross");
+                types.Add("Jellyfish");
+                types.Add("Bow");
+                types.Add("Boomerang");
+                types.Add("Boot");
+                types.Add("Chest");
+                types.Add("Bird");
+                types.Add("Axe");
+                types.Add("Corrupt");
+                types.Add("Tree");
+                types.Add("Anvil");
+                types.Add("Pickaxe");
+                types.Add("Mushroom");
+                types.Add("Eyeball");
+                types.Add("Pillar");
+                types.Add("Heart");
+                types.Add("Pot");
+                types.Add("Sunflower");
+                types.Add("King");
+                types.Add("Queen");
+                types.Add("Piranha");
+                types.Add("Ukown");
+
+                string mReqs = args.Parameters[1].ToLower();
+                var mStatue = Int32.Parse(args.Parameters[0]);
+                var surface = Main.worldSurface;
+                var trycount = 0;
+                const int maxtries = 100000;
+                var realcount = 0;
+                int stid = 0;
+                string found="unknown type!";
+                foreach (string ment in types)
+                {
+                    found = ment.ToLower();
+                    if (found.StartsWith(mReqs))
+                    {
+                        break;
+                    }
+                    stid++;
+                }
+                if (stid < 44)
+                {
+
+
+                    while (trycount < maxtries)
+                    {
+                        var tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
+                        var tryY = WorldGen.genRand.Next((int) surface + 20, Main.maxTilesY - 300);
+
+                        while (!Main.tile[tryX, tryY].active)
+                        {
+                            tryY++;
+                        }
+                        tryY--;
+
+                        if (tryY < Main.maxTilesY - 300)
+                        {
+
+                            WorldGen.PlaceTile(tryX, tryY, 105, true, true, -1, stid);
+
+                            if (Main.tile[tryX, tryY].type == 105)
+                            {
+                                realcount++;
+                                if (realcount == mStatue)
+                                    break;
+                            }
+                        }
+                        trycount++;
+                    }
+                    args.Player.SendMessage(string.Format("Generated and hid {0} {1} ({2})Statues.", realcount, found, stid));
+                }
+                else
+                {
+                    args.Player.SendMessage(string.Format("Couldn't find a match for {0}.", mReqs));
+                }
+            }
             else
             {
-                args.Player.SendMessage(string.Format("Usage: /genstatues (number of statues to generate)"));
+                args.Player.SendMessage(string.Format("Usage: /genstatues (number of statues to generate) [(optional)name of statue]"));
             }
         }
 
