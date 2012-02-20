@@ -264,52 +264,53 @@ namespace WorldRefill
             }
             else if (args.Parameters.Count == 2)
             {
-                List<string> types = new List<string>();
-
-                types.Add("Armor");
-                types.Add("Angel");
-                types.Add("Star");
-                types.Add("Sword");
-                types.Add("Slime");
-                types.Add("Goblin");
-                types.Add("Shield");
-                types.Add("Bat");
-                types.Add("Fish");
-                types.Add("Bunny");
-                types.Add("Skeleton");
-                types.Add("Reaper");
-                types.Add("Woman");
-                types.Add("Imp");
-                types.Add("Gargoyle");
-                types.Add("Gloom");
-                types.Add("Hornet");
-                types.Add("Bomb");
-                types.Add("Crab");
-                types.Add("Hammer");
-                types.Add("Potion");
-                types.Add("Spear");
-                types.Add("Cross");
-                types.Add("Jellyfish");
-                types.Add("Bow");
-                types.Add("Boomerang");
-                types.Add("Boot");
-                types.Add("Chest");
-                types.Add("Bird");
-                types.Add("Axe");
-                types.Add("Corrupt");
-                types.Add("Tree");
-                types.Add("Anvil");
-                types.Add("Pickaxe");
-                types.Add("Mushroom");
-                types.Add("Eyeball");
-                types.Add("Pillar");
-                types.Add("Heart");
-                types.Add("Pot");
-                types.Add("Sunflower");
-                types.Add("King");
-                types.Add("Queen");
-                types.Add("Piranha");
-                types.Add("Ukown");
+                List<string> types = new List<string>
+                                         {
+                                             "Armor",
+                                             "Angel",
+                                             "Star",
+                                             "Sword",
+                                             "Slime",
+                                             "Goblin",
+                                             "Shield",
+                                             "Bat",
+                                             "Fish",
+                                             "Bunny",
+                                             "Skeleton",
+                                             "Reaper",
+                                             "Woman",
+                                             "Imp",
+                                             "Gargoyle",
+                                             "Gloom",
+                                             "Hornet",
+                                             "Bomb",
+                                             "Crab",
+                                             "Hammer",
+                                             "Potion",
+                                             "Spear",
+                                             "Cross",
+                                             "Jellyfish",
+                                             "Bow",
+                                             "Boomerang",
+                                             "Boot",
+                                             "Chest",
+                                             "Bird",
+                                             "Axe",
+                                             "Corrupt",
+                                             "Tree",
+                                             "Anvil",
+                                             "Pickaxe",
+                                             "Mushroom",
+                                             "Eyeball",
+                                             "Pillar",
+                                             "Heart",
+                                             "Pot",
+                                             "Sunflower",
+                                             "King",
+                                             "Queen",
+                                             "Piranha",
+                                             "Ukown"
+                                         };
 
                 string mReqs = args.Parameters[1].ToLower();
                 var mStatue = Int32.Parse(args.Parameters[0]);
@@ -393,55 +394,55 @@ namespace WorldRefill
                 ply.SendMessage("Usage: /genores (type) (amount)", Color.Red);    //should this be a help message instead?
                 return;
             }
-            else if (args.Parameters[0] == "cobalt")
+            else if (args.Parameters[0].ToLower() == "cobalt")
             {
                 num = 0;
             }
-            else if (args.Parameters[0] == "mythril")
+            else if (args.Parameters[0].ToLower() == "mythril")
             {
                 num = 1;
             }
-            else if (args.Parameters[0] == "copper")
+            else if (args.Parameters[0].ToLower() == "copper")
             {
                 num = 3;
             }
-            else if (args.Parameters[0] == "iron")
+            else if (args.Parameters[0].ToLower() == "iron")
             {
                 num = 4;
             }
-            else if (args.Parameters[0] == "silver")
+            else if (args.Parameters[0].ToLower() == "silver")
             {
                 num = 6;
             }
-            else if (args.Parameters[0] == "gold")
+            else if (args.Parameters[0].ToLower() == "gold")
             {
                 num = 5;
             }
-            else if (args.Parameters[0] == "demonite")
+            else if (args.Parameters[0].ToLower() == "demonite")
             {
                 num = 7;
             }
-            else if (args.Parameters[0] == "sapphire")
+            else if (args.Parameters[0].ToLower() == "sapphire")
             {
                 num = 8;
             }
-            else if (args.Parameters[0] == "ruby")
+            else if (args.Parameters[0].ToLower() == "ruby")
             {
                 num = 9;
             }
-            else if (args.Parameters[0] == "emerald")
+            else if (args.Parameters[0].ToLower() == "emerald")
             {
                 num = 10;
             }
-            else if (args.Parameters[0] == "topaz")
+            else if (args.Parameters[0].ToLower() == "topaz")
             {
                 num = 11;
             }
-            else if (args.Parameters[0] == "amethyst")
+            else if (args.Parameters[0].ToLower() == "amethyst")
             {
                 num = 12;
             }
-            else if (args.Parameters[0] == "diamond")
+            else if (args.Parameters[0].ToLower() == "diamond")
             {
                 num = 13;
             }
