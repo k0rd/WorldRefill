@@ -21,6 +21,7 @@ namespace WorldRefill
             Commands.ChatCommands.Add(new Command("causeevents", DoStatues, "genstatues"));   //Statues
             Commands.ChatCommands.Add(new Command("causeevents", DoOres, "genores"));         //ores
             Commands.ChatCommands.Add(new Command("causeevents", DoWebs, "genwebs"));         //webs
+            Commands.ChatCommands.Add(new Command("causeevents", DoMineHouse, "genhouse"));   //mine house
         }
 
         protected override void Dispose(bool disposing)
@@ -599,6 +600,13 @@ namespace WorldRefill
             {
                 args.Player.SendMessage(string.Format("Usage: /genwebs (number of webs to generate)"));
             }
+        }
+        private void DoMineHouse(CommandArgs args)
+        {
+            int tryX = args.Player.TileX;
+            int tryY = args.Player.TileY;
+            WorldGen.MineHouse(tryX, tryY +1);
+            InformPlayers();
         }
 
     }
