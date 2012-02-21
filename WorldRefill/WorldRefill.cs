@@ -22,6 +22,8 @@ namespace WorldRefill
             Commands.ChatCommands.Add(new Command("causeevents", DoOres, "genores"));         //ores
             Commands.ChatCommands.Add(new Command("causeevents", DoWebs, "genwebs"));         //webs
             Commands.ChatCommands.Add(new Command("causeevents", DoMineHouse, "genhouse"));   //mine house
+            Commands.ChatCommands.Add(new Command("causeevents", DoTrees, "gentrees"));       //trees
+            Commands.ChatCommands.Add(new Command("causeevents", DoShrooms, "genpatch"));       //mushrrom patch
         }
 
         protected override void Dispose(bool disposing)
@@ -56,7 +58,7 @@ namespace WorldRefill
                 if ((person != null) && (person.Active))
                 {
                     person.SendMessage("The server is sending you new map data due to world restock...");
-                    person.SendTileSquare(person.TileX, person.TileY, 50);
+                    person.SendTileSquare(person.TileX, person.TileY, 150);
                 }
             }
 
@@ -607,6 +609,49 @@ namespace WorldRefill
             int tryY = args.Player.TileY;
             WorldGen.MineHouse(tryX, tryY +1);
             InformPlayers();
+        }
+        private void DoTrees(CommandArgs args)
+        {
+            var counter = 0;
+            while ((double)counter < (double)Main.maxTilesX * 0.003)
+            {
+                int tryX = WorldGen.genRand.Next(50, Main.maxTilesX - 50);
+                int tryY = WorldGen.genRand.Next(25, 50);
+                for (var tick = tryX - tryY; tick < tryX + tryY; tick++)
+                {
+                    var offset = 20;
+                    while ((double)offset < Main.worldSurface)
+                    {
+                        WorldGen.GrowEpicTree(tick, offset);
+                        offset++;
+                    }
+                }
+                counter++;
+            }
+            WorldGen.AddTrees();
+            args.Player.SendMessage("Enjoy your trees.",Color.Green);
+            InformPlayers();
+        }
+        private void DoShrooms(CommandArgs args)
+        {
+            int tryX = args.Player.TileX;
+            int tryY = args.Player.TileY;
+            const int offset = 25;
+            WorldGen.ShroomPatch(tryX, tryY + 1);
+            for (int z = args.Player.TileX - offset; z < args.Player.TileX +offset; z++  )
+            {
+                for (int y = args.Player.TileY - offset; y < args.Player.TileY +offset; y++  )
+                {
+                    if (Main.tile[z, y].active)
+                    {
+                        WorldGen.SpreadGrass(z, y ,59, 70, false );
+
+                    }
+                }
+            }
+
+                InformPlayers();
+            args.Player.SendMessage("Mushroom Farm generated.");
         }
 
     }
