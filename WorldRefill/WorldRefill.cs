@@ -23,7 +23,9 @@ namespace WorldRefill
             Commands.ChatCommands.Add(new Command("causeevents", DoWebs, "genwebs"));         //webs
             Commands.ChatCommands.Add(new Command("causeevents", DoMineHouse, "genhouse"));   //mine house
             Commands.ChatCommands.Add(new Command("causeevents", DoTrees, "gentrees"));       //trees
-            Commands.ChatCommands.Add(new Command("causeevents", DoShrooms, "genpatch"));       //mushrrom patch
+            Commands.ChatCommands.Add(new Command("causeevents", DoIsland, "genisland"));     //floating island
+            Commands.ChatCommands.Add(new Command("causeevents", DoShrooms, "genpatch"));     //mushroom patch
+
         }
 
         protected override void Dispose(bool disposing)
@@ -653,6 +655,27 @@ namespace WorldRefill
                 InformPlayers();
             args.Player.SendMessage("Mushroom Farm generated.");
         }
+        private void DoIsland(CommandArgs args)
+        {
+            int tryX = args.Player.TileX;
+            int tryY = args.Player.TileY;
+            WorldGen.FloatingIsland(tryX, tryY -50);
+            const int offset = 100;
+            for (int z = args.Player.TileX - offset; z < args.Player.TileX + offset; z++)
+            {
+                for (int y = args.Player.TileY - offset ; y < args.Player.TileY; y++)
+                {
+                    if (Main.tile[z, y].active)
+                    {
+                        WorldGen.SpreadGrass(z, y, 0, 2, false);
+
+                    }
+                }
+            }
+            InformPlayers();
+            args.Player.SendMessage("I made you a nice little island",Color.Green);
+        }
+
 
     }
 }
