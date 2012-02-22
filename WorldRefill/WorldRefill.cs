@@ -25,7 +25,9 @@ namespace WorldRefill
             Commands.ChatCommands.Add(new Command("causeevents", DoTrees, "gentrees"));       //trees
             Commands.ChatCommands.Add(new Command("causeevents", DoIsland, "genisland"));     //floating island
             Commands.ChatCommands.Add(new Command("causeevents", DoShrooms, "genpatch"));     //mushroom patch
-
+            Commands.ChatCommands.Add(new Command("causeevents", DoLake, "genlake"));         //lake
+            Commands.ChatCommands.Add(new Command("causeevents", DoMountain, "genmountain")); //mountain
+ //           Commands.ChatCommands.Add(new Command("causeevents", CountEmpties, "chests"));    //chests
         }
 
         protected override void Dispose(bool disposing)
@@ -675,7 +677,108 @@ namespace WorldRefill
             InformPlayers();
             args.Player.SendMessage("I made you a nice little island",Color.Green);
         }
+        private void DoLake(CommandArgs args)
+        {
+            int tryX = args.Player.TileX;
+            int tryY = args.Player.TileY;
+            const int yoffset = 20;
+
+            WorldGen.Lakinater(tryX, tryY +yoffset);
+            InformPlayers();
+        }
+
+        private void DoMountain(CommandArgs args)
+        {
+            int tryX = args.Player.TileX;
+            int tryY = args.Player.TileY;
+            const int yoffset = 20;
 
 
+            WorldGen.Mountinater(tryX, tryY - yoffset);
+            InformPlayers();
+            args.Player.SendMessage("Gotta get you out of here");
+
+            while (tryY - yoffset >30)
+            {
+                tryY -= yoffset;
+                if (Main.tile[tryX, tryY].active) continue;
+                args.Player.Teleport(tryX, tryY + 3);
+                args.Player.SendMessage("I got your back bro :)");
+                break;
+            }
+            InformPlayers();
+        }
+
+        private void CountEmpties(CommandArgs args)
+        {
+            int empty = 0;
+            int tmpEmpty = 0;
+            const int maxtries = 100000;
+            var chests = Int32.Parse(args.Parameters[0]);
+            const int threshold = 100;
+            for (int x = 0; x < 1000; x++)
+            {
+                if (Main.chest[x] != null)
+                {
+                    tmpEmpty++;
+                    bool found = false;
+                    foreach (Item itm in Main.chest[x].item)
+                        if (itm.netID != 0)
+                            found = true;
+                    if (found == false)
+                    {
+                        empty++;
+                  //      TShock.Utils.Broadcast(string.Format("Found chest {0} empty at x {1} y {2}", x, Main.chest[x].x,
+                  //                                           Main.chest[x].y));
+
+                        // destroying
+                        WorldGen.KillTile(Main.chest[x].x, Main.chest[x].y, false, false, false);
+                        Main.chest[x] = null;
+
+                    }
+
+                }
+
+
+            }
+            TShock.Utils.Broadcast(string.Format("uprooted {0} empty out of {1} chests.", empty, tmpEmpty));
+            InformPlayers();
+            if (chests + tmpEmpty + threshold > 1000)
+                chests = 1000 - tmpEmpty - threshold;
+            if (chests >0)
+            {
+                int counter = 0;
+                int chestcount = 0;
+                int tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
+                int tryY = WorldGen.genRand.Next((int) Main.worldSurface, Main.maxTilesY - 300);
+                
+                chestcount = tmpEmpty;
+                int tries = 0;
+                int newcount = 0;
+                while (newcount < chests)
+                {
+                    int contain = WorldGen.genRand.Next(1, 603);        
+         
+                    WorldGen.KillTile(tryX, tryY);
+                    WorldGen.KillTile(tryX +1 , tryY);
+                    WorldGen.KillTile(tryX, tryY + 1);
+                    WorldGen.KillTile(tryX + 1, tryY);
+
+                      
+
+                    if (WorldGen.AddBuriedChest(tryX, tryY, contain, false, 1))
+                    {
+                        chestcount++;
+                        newcount++;
+                    }
+                    if (tries + 1 >= maxtries)
+                        break;
+
+                    tries++;
+                }
+                args.Player.SendMessage(string.Format("generated {0} new chests - {1} total", newcount, chestcount));
+                InformPlayers();
+            }
+        }
     }
 }
