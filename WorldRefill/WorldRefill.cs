@@ -27,7 +27,8 @@ namespace WorldRefill
             Commands.ChatCommands.Add(new Command("causeevents", DoShrooms, "genpatch"));     //mushroom patch
             Commands.ChatCommands.Add(new Command("causeevents", DoLake, "genlake"));         //lake
             Commands.ChatCommands.Add(new Command("causeevents", DoMountain, "genmountain")); //mountain
- //           Commands.ChatCommands.Add(new Command("causeevents", CountEmpties, "chests"));    //chests
+            Commands.ChatCommands.Add(new Command("causeevents", CountEmpties, "genchests"));    //chests
+            Commands.ChatCommands.Add(new Command("causeevents", DoIslandHouse, "genihouse"));    //island house
         }
 
         protected override void Dispose(bool disposing)
@@ -614,6 +615,14 @@ namespace WorldRefill
             WorldGen.MineHouse(tryX, tryY +1);
             InformPlayers();
         }
+        private void DoIslandHouse(CommandArgs args)
+        {
+            int tryX = args.Player.TileX;
+            int tryY = args.Player.TileY;
+            WorldGen.IslandHouse(tryX, tryY +1);
+            InformPlayers();
+        }
+
         private void DoTrees(CommandArgs args)
         {
             var counter = 0;
@@ -749,20 +758,26 @@ namespace WorldRefill
             {
                 int counter = 0;
                 int chestcount = 0;
-                int tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
-                int tryY = WorldGen.genRand.Next((int) Main.worldSurface, Main.maxTilesY - 300);
-                
                 chestcount = tmpEmpty;
                 int tries = 0;
                 int newcount = 0;
                 while (newcount < chests)
                 {
-                    int contain = WorldGen.genRand.Next(1, 603);        
-         
-                    WorldGen.KillTile(tryX, tryY);
-                    WorldGen.KillTile(tryX +1 , tryY);
-                    WorldGen.KillTile(tryX, tryY + 1);
-                    WorldGen.KillTile(tryX + 1, tryY);
+                    int contain = WorldGen.genRand.Next(1, 603);
+                    int tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
+                    int tryY = WorldGen.genRand.Next((int) Main.worldSurface, Main.maxTilesY - 200);
+                        while (!Main.tile[tryX, tryY].active)
+                        {
+                            tryY++;
+                        }
+                        tryY--;
+
+
+
+                    WorldGen.KillTile(tryX, tryY, false, false, false);
+                    WorldGen.KillTile(tryX +1 , tryY, false, false, false);
+                    WorldGen.KillTile(tryX, tryY + 1, false, false, false);
+                    WorldGen.KillTile(tryX + 1, tryY, false, false, false);
 
                       
 
