@@ -29,7 +29,8 @@ namespace WorldRefill
             Commands.ChatCommands.Add(new Command("causeevents", DoMountain, "genmountain")); //mountain
             Commands.ChatCommands.Add(new Command("causeevents", CountEmpties, "genchests"));    //chests
             Commands.ChatCommands.Add(new Command("causeevents", DoIslandHouse, "genihouse"));    //island house
-        }
+            Commands.ChatCommands.Add(new Command("causeevents", DoHV, "hellavator"));
+            }
 
         protected override void Dispose(bool disposing)
         {
@@ -56,14 +57,28 @@ namespace WorldRefill
         {
             get { return "Refill your world!"; }
         }
-        public static void InformPlayers()
+        public static void InformPlayers(bool hard=false)
         {
             foreach (TSPlayer person in TShock.Players)
             {
                 if ((person != null) && (person.Active))
                 {
-                    person.SendMessage("The server is sending you new map data due to world restock...");
-                    person.SendTileSquare(person.TileX, person.TileY, 150);
+                    person.SendMessage("The server is sending you map data due to world restock...");
+                    if (hard)
+                    {
+                        var myX = person.TileX;
+                        var myy = person.TileY;
+                        person.SendTileSquare(person.TileX, person.TileY, 150);
+                        int count;
+                        for (count = person.TileY; count < Main.maxTilesY; count += 150)
+                        {
+                            person.Teleport(person.TileX + 1, count);
+                        }
+                        person.Teleport(myX, myy);
+                    }
+
+                else
+                        person.SendTileSquare(person.TileX, person.TileX, 150);
                 }
             }
 
@@ -696,6 +711,50 @@ namespace WorldRefill
             InformPlayers();
         }
 
+        private void DoHV(CommandArgs args)
+        {
+            int meX = args.Player.TileX;
+            int meY = args.Player.TileY;
+            const int maxsize = 25;
+            const int bump = 4;
+            int cx;
+            int ypos = 0;
+            int start = 0;
+            
+            int bottom = Main.maxTilesY - 150;
+            int width = 3;
+            if (args.Parameters.Count==1)
+                width = Int32.Parse(args.Parameters[0]);
+            if (width < 2) width = 2;
+            if (width > maxsize) width = maxsize;
+            start = meX - (width/2);
+            ypos = meY + bump;
+            start--;
+            width++;
+            for (cx=start; cx < width + start; cx++)
+            {
+                int xc;
+                for (xc = ypos; xc < bottom; xc++)
+                {
+//                   WorldGen.KillTile(cx, xc,false,false,false);
+                    if ((cx == start) || (cx == width + start - 1))
+                    {
+                        Main.tile[cx, xc].type = 121;
+                        Main.tile[cx, xc].active = true;
+                    }
+                    else
+                    {
+                        WorldGen.KillTile(cx, xc, false, false, false);
+                        Main.tile[cx, xc].wall = 25;
+                    }
+        //            Log.ConsoleError(string.Format("pos - x: {0} y: {1}",cx,xc));
+                }
+            }
+
+
+            InformPlayers(true);
+        }
+
         private void DoMountain(CommandArgs args)
         {
             int tryX = args.Player.TileX;
@@ -756,7 +815,6 @@ namespace WorldRefill
                 chests = 1000 - tmpEmpty - threshold;
             if (chests >0)
             {
-                int counter = 0;
                 int chestcount = 0;
                 chestcount = tmpEmpty;
                 int tries = 0;
