@@ -78,7 +78,7 @@ namespace WorldRefill
                     }
 
                 else
-                        person.SendTileSquare(person.TileX, person.TileX, 150);
+                        person.SendTileSquare(person.TileX, person.TileY, 150);
                 }
             }
 
