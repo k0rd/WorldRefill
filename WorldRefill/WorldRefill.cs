@@ -779,10 +779,20 @@ namespace WorldRefill
 
         private void CountEmpties(CommandArgs args)
         {
+            if( args.Parameters.Count == 0 )
+            {
+                args.Player.SendMessage( "Usage: /genchests <amount> [use hardmode items true/false]");
+            }
             int empty = 0;
             int tmpEmpty = 0;
+            int chests = 0;
+            bool useHardmode = true;
+            if( args.Parameters.Count > 1 )
+            {
+                bool.TryParse(args.Parameters[1], out useHardmode);
+            }
             const int maxtries = 100000;
-            var chests = Int32.Parse(args.Parameters[0]);
+            Int32.TryParse(args.Parameters[0], out chests);
             const int threshold = 100;
             for (int x = 0; x < 1000; x++)
             {
@@ -821,7 +831,12 @@ namespace WorldRefill
                 int newcount = 0;
                 while (newcount < chests)
                 {
-                    int contain = WorldGen.genRand.Next(1, 603);
+                    int cap = 603;
+                    if( !useHardmode )
+                    {
+                        cap = 363;
+                    }
+                    int contain = WorldGen.genRand.Next(1, cap);
                     int tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
                     int tryY = WorldGen.genRand.Next((int) Main.worldSurface, Main.maxTilesY - 200);
                         while (!Main.tile[tryX, tryY].active)
