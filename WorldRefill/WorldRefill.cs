@@ -66,6 +66,7 @@ namespace WorldRefill
                     person.SendMessage("The server is sending you map data due to world restock...");
                     if (hard)
                     {
+                        person.SendMessage("Your assistance is required in building a hellavator...");
                         var myX = person.TileX;
                         var myy = person.TileY;
                         person.SendTileSquare(person.TileX, person.TileY, 150);
@@ -74,7 +75,7 @@ namespace WorldRefill
                         {
                             person.Teleport(person.TileX + 1, count);
                         }
-                        person.Teleport(myX, myy);
+                        person.Teleport(person.TileX, person.TileY);
                     }
 
                 else
@@ -731,6 +732,101 @@ namespace WorldRefill
             ypos = meY + bump;
             start--;
             width++;
+            int tl = 121;
+            int wl = 25;
+            int a = WorldGen.genRand.Next(1, 14);
+            switch (a)
+            {
+                case 1:
+                    tl = 38;
+                    break;
+                case 2:
+                    tl = 30;
+                    break;
+                case 3:
+                    tl = 41;
+                    break;
+                case 4:
+                    tl = 43;
+                    break;
+                case 5:
+                    tl = 44;
+                    break;
+                case 6:
+                    tl = 45;
+                    break;
+                case 7:
+                    tl = 46;
+                    break;
+                case 8:
+                    tl = 47;
+                    break;
+                case 9:
+                    tl = 75;
+                    break;
+                case 10:
+                    tl = 76;
+                    break;
+                case 11:
+                    tl = 119;
+                    break;
+                case 12:
+                    tl = 121;
+                    break;
+                case 13:
+                    tl = 122;
+                    break;
+            }
+            a = WorldGen.genRand.Next(1, 16);
+            switch (a)
+            {
+                case 1:
+                    wl = 4;
+                    break;
+                case 2:
+                    wl = 5;
+                    break;
+                case 3:
+                    wl = 6;
+                    break;
+                case 4:
+                    wl = 10;
+                    break;
+                case 5:
+                    wl = 11;
+                    break;
+                case 6:
+                    wl = 12;
+                    break;
+                case 7:
+                    wl = 17;
+                    break;
+                case 8:
+                    wl = 18;
+                    break;
+                case 9:
+                    wl = 19;
+                    break;
+                case 10:
+                    wl = 20;
+                    break;
+                case 11:
+                    wl = 21;
+                    break;
+                case 12:
+                    wl = 23;
+                    break;
+                case 13:
+                    wl = 24;
+                    break;
+                case 14:
+                    wl = 25;
+                    break;
+                case 15:
+                    wl = 26;
+                    break;
+            }
+
             for (cx=start; cx < width + start; cx++)
             {
                 int xc;
@@ -739,20 +835,20 @@ namespace WorldRefill
 //                   WorldGen.KillTile(cx, xc,false,false,false);
                     if ((cx == start) || (cx == width + start - 1))
                     {
-                        Main.tile[cx, xc].type = 121;
+                        Main.tile[cx, xc].type = (byte) tl;
                         Main.tile[cx, xc].active = true;
                     }
                     else
                     {
                         WorldGen.KillTile(cx, xc, false, false, false);
-                        Main.tile[cx, xc].wall = 25;
+                        Main.tile[cx, xc].wall = (byte) wl;
                     }
         //            Log.ConsoleError(string.Format("pos - x: {0} y: {1}",cx,xc));
                 }
             }
 
 
-            InformPlayers(true);
+            InformPlayers();
         }
 
         private void DoMountain(CommandArgs args)
