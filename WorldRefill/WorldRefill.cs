@@ -4,7 +4,7 @@ using TShockAPI;
 using Terraria;
 namespace WorldRefill
 {
-    [APIVersion(1, 11)]
+    [APIVersion(1, 12)]
     public class WorldRefill : TerrariaPlugin
     {
         public WorldRefill(Main game)
