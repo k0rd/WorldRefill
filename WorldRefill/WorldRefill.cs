@@ -2,9 +2,15 @@
 using System.Collections.Generic;
 using TShockAPI;
 using Terraria;
+using TerrariaApi.Server;
+
+// using TShockAPI.DB;
+//using Mono.Data.Sqlite;
+//using MySql.Data.MySqlClient;
+
 namespace WorldRefill
 {
-    [APIVersion(1, 12)]
+    [ApiVersion(1, 14)]
     public class WorldRefill : TerrariaPlugin
     {
         public WorldRefill(Main game)
@@ -13,23 +19,23 @@ namespace WorldRefill
         }
         public override void Initialize()
         {
-            Commands.ChatCommands.Add(new Command("causeevents", DoCrystals, "gencrystals")); //Life Crystals
-            Commands.ChatCommands.Add(new Command("causeevents", DoPots, "genpots"));         //Pots
-            Commands.ChatCommands.Add(new Command("causeevents", DoOrbs, "genorbs"));         //Orbs
-            Commands.ChatCommands.Add(new Command("causeevents", DoAltars, "genaltars"));     //Demon Altars
-            Commands.ChatCommands.Add(new Command("causeevents", DoTraps, "gentraps"));       //Traps
-            Commands.ChatCommands.Add(new Command("causeevents", DoStatues, "genstatues"));   //Statues
-            Commands.ChatCommands.Add(new Command("causeevents", DoOres, "genores"));         //ores
-            Commands.ChatCommands.Add(new Command("causeevents", DoWebs, "genwebs"));         //webs
-            Commands.ChatCommands.Add(new Command("causeevents", DoMineHouse, "genhouse"));   //mine house
-            Commands.ChatCommands.Add(new Command("causeevents", DoTrees, "gentrees"));       //trees
-            Commands.ChatCommands.Add(new Command("causeevents", DoIsland, "genisland"));     //floating island
-            Commands.ChatCommands.Add(new Command("causeevents", DoShrooms, "genpatch"));     //mushroom patch
-            Commands.ChatCommands.Add(new Command("causeevents", DoLake, "genlake"));         //lake
-            Commands.ChatCommands.Add(new Command("causeevents", DoMountain, "genmountain")); //mountain
-            Commands.ChatCommands.Add(new Command("causeevents", CountEmpties, "genchests"));    //chests
-            Commands.ChatCommands.Add(new Command("causeevents", DoIslandHouse, "genihouse"));    //island house
-            Commands.ChatCommands.Add(new Command("causeevents", DoHV, "hellavator"));
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoCrystals, "gencrystals")); //Life Crystals
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoPots, "genpots"));         //Pots
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoOrbs, "genorbs"));         //Orbs
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoAltars, "genaltars"));     //Demon Altars
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoTraps, "gentraps"));       //Traps
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoStatues, "genstatues"));   //Statues
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoOres, "genores"));         //ores
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoWebs, "genwebs"));         //webs
+            //Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoMineHouse, "genhouse"));   //mine house
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoTrees, "gentrees"));       //trees
+            //Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoIsland, "genisland"));     //floating island
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoShrooms, "genpatch"));     //mushroom patch
+            //Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoLake, "genlake"));         //lake
+            //Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoMountain, "genmountain")); //mountain
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", CountEmpties, "genchests"));    //chests
+            //Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoIslandHouse, "genihouse"));    //island house
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoHV, "hellavator"));
             }
 
         protected override void Dispose(bool disposing)
@@ -43,7 +49,7 @@ namespace WorldRefill
 
         public override Version Version
         {
-            get { return new Version("1.0"); }
+            get { return new Version("1.2"); }
         }
         public override string Name
         {
@@ -51,22 +57,24 @@ namespace WorldRefill
         }
         public override string Author
         {
-            get { return "by k0rd"; }
+            get { return "by k0rd / Updated by IcyPhoenix and Enerdy"; }
         }
         public override string Description
         {
             get { return "Refill your world!"; }
         }
+
+        //Updating all players
         public static void InformPlayers(bool hard=false)
         {
             foreach (TSPlayer person in TShock.Players)
             {
                 if ((person != null) && (person.Active))
                 {
-                    person.SendMessage("The server is sending you map data due to world restock...");
+                    //Spams too much if set on a timer and all of them fire at the sametime
+                    //person.SendMessage("The server is sending you map data due to world restock...");
                     if (hard)
                     {
-                        person.SendMessage("Your assistance is required in building a hellavator...");
                         var myX = person.TileX;
                         var myy = person.TileY;
                         person.SendTileSquare(person.TileX, person.TileY, 150);
@@ -75,7 +83,7 @@ namespace WorldRefill
                         {
                             person.Teleport(person.TileX + 1, count);
                         }
-                        person.Teleport(person.TileX, person.TileY);
+                        person.Teleport(myX, myy);
                     }
 
                 else
@@ -84,6 +92,8 @@ namespace WorldRefill
             }
 
         }
+
+
         private void DoCrystals(CommandArgs args)
         {
 
@@ -92,24 +102,31 @@ namespace WorldRefill
                 var mCry = Int32.Parse(args.Parameters[0]);
                 var surface = Main.worldSurface;
                 var trycount = 0;
+                //maxtries = retry amounts if generation of object fails
                 const int maxtries = 1000000;
+                //realcount = actual amount of objects generated
                 var realcount = 0;
 
+                //Attempting to generate Objects
                 while (trycount < maxtries)
                 {
                     if (WorldGen.AddLifeCrystal(WorldGen.genRand.Next(1, Main.maxTilesX), WorldGen.genRand.Next((int)(surface + 20.0), Main.maxTilesY)))
                     {
                         realcount++;
+                        //Determine if enough Objects have been generated
                         if (realcount == mCry) break;
                     }
                     trycount++;
                 }
-                args.Player.SendMessage(string.Format("Generated and hid {0} Life Crystals.",realcount));
+                //Notify user on success
+                args.Player.SendMessage(string.Format("Generated and hid {0} Life Crystals.", realcount), Color.Green);
+
                 InformPlayers();
             }
             else
             {
-                args.Player.SendMessage(string.Format("Usage: /gencrystals (number of crystals to generate)"));
+                //notify user of command failure
+                args.Player.SendMessage(string.Format("Usage: /gencrystals (number of crystals to generate)"), Color.Green);
             }
             
         }
@@ -137,12 +154,12 @@ namespace WorldRefill
                         trycount++;
 
                 }
-                args.Player.SendMessage(string.Format("Generated and hid {0} Pots.", realcount));
+                args.Player.SendMessage(string.Format("Generated and hid {0} Pots.", realcount), Color.Green);
                 InformPlayers();
             }
             else
             {
-                args.Player.SendMessage(string.Format("Usage: /genpots (number of pots to generate)"));
+                args.Player.SendMessage(string.Format("Usage: /genpots (number of pots to generate)"), Color.Green);
             }
         }
 
@@ -161,7 +178,7 @@ namespace WorldRefill
                     var tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
                     var tryY = WorldGen.genRand.Next((int)surface + 20, Main.maxTilesY);
 
-                    if ((!Main.tile[tryX, tryY].active) && (Main.tile[tryX, tryY].wall == (byte)3))
+                    if ((!Main.tile[tryX, tryY].active()) && (Main.tile[tryX, tryY].wall == (byte)3))
                     {
                         WorldGen.AddShadowOrb(tryX, tryY);
                         if (Main.tile[tryX, tryY].type == 31)
@@ -174,11 +191,11 @@ namespace WorldRefill
                     trycount++;
                 }
                 InformPlayers();
-                args.Player.SendMessage(string.Format("Generated and hid {0} Orbs.", realcount));
+                args.Player.SendMessage(string.Format("Generated and hid {0} Orbs.", realcount), Color.Green);
             }
             else
             {
-                args.Player.SendMessage(string.Format("Usage: /genorbs (number of orbs to generate)"));
+                args.Player.SendMessage(string.Format("Usage: /genorbs (number of orbs to generate)"), Color.Green);
             }
         }
         private void DoAltars(CommandArgs args)
@@ -207,18 +224,18 @@ namespace WorldRefill
                     trycount++;
                 }
                 InformPlayers();
-                args.Player.SendMessage(string.Format("Generated and hid {0} Demon Altars.", realcount));
+                args.Player.SendMessage(string.Format("Generated and hid {0} Demon Altars.", realcount), Color.Green);
             }
             else
             {
-                args.Player.SendMessage(string.Format("Usage: /genaltars (number of Demon Altars to generate)"));
+                args.Player.SendMessage(string.Format("Usage: /genaltars (number of Demon Altars to generate)"), Color.Green);
             }
         }
         private void DoTraps(CommandArgs args)
         {
             if (args.Parameters.Count == 1)
             {
-                args.Player.SendMessage("Generating traps.. this may take a while..");
+                args.Player.SendMessage("Generating traps.. this may take a while..", Color.Green);
                 var mTrap = Int32.Parse(args.Parameters[0]);
                 var surface = Main.worldSurface;
                 var trycount = 0;
@@ -240,18 +257,18 @@ namespace WorldRefill
                     trycount++;
                 }
                 InformPlayers();
-                args.Player.SendMessage(string.Format("Generated and hid {0} traps.", realcount));
+                args.Player.SendMessage(string.Format("Generated and hid {0} traps.", realcount), Color.Green);
             }
             else
             {
-                args.Player.SendMessage(string.Format("Usage: /gentraps (number of Traps to generate)"));
+                args.Player.SendMessage(string.Format("Usage: /gentraps (number of Traps to generate)"), Color.Green);
             }
         }
         private void DoStatues(CommandArgs args)
         {
             if (args.Parameters.Count == 1)
             {
-                args.Player.SendMessage("Generating statues.. this may take a while..");
+                args.Player.SendMessage("Generating statues.. this may take a while..", Color.Green);
                 var mStatue = Int32.Parse(args.Parameters[0]);
                 var surface = Main.worldSurface;
                 var trycount = 0;
@@ -263,7 +280,7 @@ namespace WorldRefill
                     var tryY = WorldGen.genRand.Next((int)surface + 20, Main.maxTilesY -300);
                     var tryType = WorldGen.genRand.Next((int) 2, 44);
                    
-                    while (!Main.tile[tryX, tryY].active)
+                    while (!Main.tile[tryX, tryY].active())
                     {
                         tryY++;
                     }
@@ -283,7 +300,7 @@ namespace WorldRefill
                     }
                     trycount++;
                 }
-                args.Player.SendMessage(string.Format("Generated and hid {0} Statues.", realcount));
+                args.Player.SendMessage(string.Format("Generated and hid {0} Statues.", realcount), Color.Green);
                 InformPlayers();
             }
             else if (args.Parameters.Count == 2)
@@ -356,13 +373,13 @@ namespace WorldRefill
                 if (stid < 44)
                 {
 
-                    args.Player.SendMessage(string.Format("Generating {0} statues.. this may take a while..", found));
+                    args.Player.SendMessage(string.Format("Generating {0} statues.. this may take a while..", found), Color.Green);
                     while (trycount < maxtries)
                     {
                         var tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
                         var tryY = WorldGen.genRand.Next((int) surface + 20, Main.maxTilesY - 300);
 
-                        while (!Main.tile[tryX, tryY].active)
+                        while (!Main.tile[tryX, tryY].active())
                         {
                             tryY++;
                         }
@@ -382,17 +399,17 @@ namespace WorldRefill
                         }
                         trycount++;
                     }
-                    args.Player.SendMessage(string.Format("Generated and hid {0} {1} ({2})Statues.", realcount, found, stid));
+                    args.Player.SendMessage(string.Format("Generated and hid {0} {1} ({2})Statues.", realcount, found, stid), Color.Green);
                     InformPlayers();
                 }
                 else
                 {
-                    args.Player.SendMessage(string.Format("Couldn't find a match for {0}.", mReqs));
+                    args.Player.SendMessage(string.Format("Couldn't find a match for {0}.", mReqs), Color.Green);
                 }
             }
             else
             {
-                args.Player.SendMessage(string.Format("Usage: /genstatues (number of statues to generate) [(optional)name of statue]"));
+                args.Player.SendMessage(string.Format("Usage: /genstatues (number of statues to generate) [(optional)name of statue]"), Color.Green);
             }
         }
 
@@ -402,16 +419,28 @@ namespace WorldRefill
                 WorldGen.genRand = new Random();
 
             TSPlayer ply = args.Player;
-
-
-
-            int num = WorldGen.altarCount % 3;
-            int num2 = WorldGen.altarCount / 3 + 1;
-            float num3 = (float)(Main.maxTilesX / 4200);
-            int num4 = 1 - num;
-            num3 = num3 * 310f - (float)(85 * num);
-            num3 *= 0.85f;
-            num3 /= (float)num2;
+            int oreType;
+            float oreAmts = 100f;
+            //Sigh why did I bother checking what this does...gets completely overwritten
+            //Mod altarcount divide 3 - gives number between: 0 to 2
+            //int num = WorldGen.altarCount % 3;
+            //Altarcount divide 3 + 1 - gives number between: 1 to infinity
+            //int num2 = WorldGen.altarCount / 3 + 1;
+            //4200 = small world size
+            //6400 = medium world size
+            //8400 = large world size
+            //returns value: - 0 , 1.523809523809524, 2
+            //float num3 = (float)(Main.maxTilesX / 4200);
+            //Gives number between: -1 to 1
+            //int num4 = 1 - num;
+            //num3 * 310f - returns value: 0, 472.3809523809524, 620
+            //(float)(85 * num) - gives number between 0 to 170
+            //Returns value: -170, 302.3809523809524, 450
+            //num3 = num3 * 310f - (float)(85 * num);
+            //Returns Value: -144.5, 257.0238095238095, 382.5
+            //num3 *= 0.85f;
+            //gives number between: -144.5 to 382.5
+            //num3 /= (float)num2;
 
             if (args.Parameters.Count < 1)
             {
@@ -420,155 +449,153 @@ namespace WorldRefill
             }
             else if (args.Parameters[0].ToLower() == "cobalt")
             {
-                num = 0;
+                oreType = 107;
             }
             else if (args.Parameters[0].ToLower() == "mythril")
             {
-                num = 1;
+                oreType = 108;
             }
             else if (args.Parameters[0].ToLower() == "copper")
             {
-                num = 3;
+                oreType = 7;
             }
             else if (args.Parameters[0].ToLower() == "iron")
             {
-                num = 4;
+                oreType = 6;
             }
             else if (args.Parameters[0].ToLower() == "silver")
             {
-                num = 6;
+                oreType = 9;
             }
             else if (args.Parameters[0].ToLower() == "gold")
             {
-                num = 5;
+                oreType = 8;
             }
             else if (args.Parameters[0].ToLower() == "demonite")
             {
-                num = 7;
+                oreType = 22;
             }
             else if (args.Parameters[0].ToLower() == "sapphire")
             {
-                num = 8;
+                oreType = 63;
             }
             else if (args.Parameters[0].ToLower() == "ruby")
             {
-                num = 9;
+                oreType = 64;
             }
             else if (args.Parameters[0].ToLower() == "emerald")
             {
-                num = 10;
+                oreType = 65;
             }
             else if (args.Parameters[0].ToLower() == "topaz")
             {
-                num = 11;
+                oreType = 66;
             }
             else if (args.Parameters[0].ToLower() == "amethyst")
             {
-                num = 12;
+                oreType = 67;
             }
             else if (args.Parameters[0].ToLower() == "diamond")
             {
-                num = 13;
+                oreType = 68;
+            }
+            else if (args.Parameters[0].ToLower() == "adamantite")
+            {
+                oreType = 111;
+            }
+            else if (args.Parameters[0].ToLower() == "hellstone")
+            {
+                oreType = 58;
+            }
+
+            // New Ores
+            else if (args.Parameters[0].ToLower() == "tin")
+            {
+                oreType = 166;
+            }
+            else if (args.Parameters[0].ToLower() == "lead")
+            {
+                oreType = 167;
+            }
+            else if (args.Parameters[0].ToLower() == "tungsten")
+            {
+                oreType = 168;
+            }
+            else if (args.Parameters[0].ToLower() == "platinum")
+            {
+                oreType = 169;
+            }
+
+            // 1.2 Hardmode Ores
+            else if (args.Parameters[0].ToLower() == "palladium")
+            {
+                oreType = 221;
+            }
+            else if (args.Parameters[0].ToLower() == "orichalcum")
+            {
+                oreType = 222;
+            }
+            else if (args.Parameters[0].ToLower() == "titanium")
+            {
+                oreType = 223;
             }
             else
             {
-                num = 2;
+                ply.SendMessage("Warning! Typo in Tile name or Tile does not exist", Color.Red);    //should this be a help message instead?
+                return;
             }
 
-            if (num == 0)
-            {
-                num = 107;
-                num3 *= 1.05f;
-            }
-            else if (num == 1)
-            {
-                num = 108;
-            }
-            else if (num == 3)
-            {
-                num = 7;
-                num3 *= 1.1f;
-            }
-            else if (num == 4)
-            {
-                num = 6;
-                num3 *= 1.1f;
-            }
-            else if (num == 5)
-            {
-                num = 8;
-                num3 *= 1.1f;
-            }
-            else if (num == 6)
-            {
-                num = 9;
-                num3 *= 1.1f;
-            }
-            else if (num == 7)
-            {
-                num = 22;
-                num3 *= 1;
-            }
-            else if (num == 8)
-            {
-                num = 63;
-                num3 *= .80f;
-            }
-            else if (num == 9)
-            {
-                num = 64;
-                num3 *= 1;
-            }
-            else if (num == 10)
-            {
-                num = 65;
-                num3 *= 1;
-            }
-            else if (num == 11)
-            {
-                num = 66;
-                num3 *= 1;
-            }
-            else if (num == 12)
-            {
-                num = 67;
-                num3 *= 1;
-            }
-            else if (num == 13)
-            {
-                num = 68;
-                num3 *= 1;
-            }
-            else
-            {
-                num = 111;
-            }
-
-
+            //If user specifies how many ores to generate (make sure not over 10000)
             if (args.Parameters.Count > 1)
             {
-                float.TryParse(args.Parameters[1], out num3);
-                num3 = Math.Min(num3, 10000f);
+                float.TryParse(args.Parameters[1], out oreAmts);
+                oreAmts = Math.Min(oreAmts, 10000f);
             }
-
-            int num5 = 0;
-            while ((float)num5 < num3)
+            //oreGened = track amount of ores generated already
+            int oreGened = 0;
+            int minFrequency;
+            int maxFrequency;
+            int minSpread;
+            int maxSpread;
+            while ((float)oreGened < oreAmts)
             {
+                //Get random number from 100 tiles each side
                 int i2 = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
-                double num6 = Main.worldSurface;
-                if ((num == 108) || (num == 6) || (num == 7) || (num == 8) || (num == 9) || ((num > 62) && (num < 69)))
+                double worldY = Main.worldSurface;
+                //Rare Ores  - Adamantite (Titanium), Demonite, Diamond
+                if ((oreType == 111) || (oreType == 22) || (oreType == 223) || (oreType >= 63) && (oreType <= 68))
                 {
-                    num6 = Main.rockLayer;
+                    //Some formula created by k0rd for getting somewhere between hell and roughly half way after rock
+                    worldY = (Main.rockLayer + Main.rockLayer + (double)Main.maxTilesY) / 3.0;
+                    minFrequency = 2;
+                    minSpread = 2;
+                    maxFrequency = 3;
+                    maxSpread = 3;
                 }
-                if ((num == 111) || (num == 22) || (num == 68))
+                //Hellstone Only
+                else if (oreType == 58)
                 {
-                    num6 = (Main.rockLayer + Main.rockLayer + (double)Main.maxTilesY) / 3.0;
+                    //roughly where hell is
+                    worldY = Main.maxTilesY - 200;
+                    minFrequency = 4;
+                    minSpread = 4;
+                    maxFrequency = 9;
+                    maxSpread = 9;
                 }
-                int j2 = WorldGen.genRand.Next((int)num6, Main.maxTilesY - 150);
-                WorldGen.OreRunner(i2, j2, (double)WorldGen.genRand.Next(5, 9 + num4), WorldGen.genRand.Next(5, 9 + num4), num);
-                num5++;
+                else
+                {
+                    worldY = Main.rockLayer;
+                    minFrequency = 5;
+                    minSpread = 9;
+                    maxFrequency = 5;
+                    maxSpread = 9;
+                }
+                //Gets random number based on minimum spawn point to maximum depth of map
+                int j2 = WorldGen.genRand.Next((int)worldY, Main.maxTilesY - 150);
+                WorldGen.OreRunner(i2, j2, (double)WorldGen.genRand.Next(minSpread, maxSpread), WorldGen.genRand.Next(minFrequency, maxFrequency), oreType);
+                oreGened++;
             }
-            ply.SendMessage(String.Format("Spawned {0} tiles of {1}", Math.Floor(num3), num), Color.Green);
+            ply.SendMessage(String.Format("Spawned {0} tiles of {1}", Math.Floor(oreAmts), args.Parameters[0].ToLower()), Color.Green);
             InformPlayers();
         }
         private void DoWebs(CommandArgs args)
@@ -594,12 +621,12 @@ namespace WorldRefill
                     {
                         direction = 1;
                     }
-                     while (!Main.tile[tryX, tryY].active && tryY>149)
+                     while (!Main.tile[tryX, tryY].active() && tryY>149)
                      {
                          tryY--;
                      }
                     tryY++;
-                     while (!Main.tile[tryX, tryY].active && tryX > 10 && tryX < Main.maxTilesX - 10)
+                     while (!Main.tile[tryX, tryY].active() && tryX > 10 && tryX < Main.maxTilesX - 10)
                      {
                          tryX += direction;
                      }
@@ -616,27 +643,13 @@ namespace WorldRefill
                     trycount++;
 
                 }
-                args.Player.SendMessage(string.Format("Generated and hid {0} Webs.", realcount));
+                args.Player.SendMessage(string.Format("Generated and hid {0} Webs.", realcount),Color.Green);
                 InformPlayers();
             }
             else
             {
-                args.Player.SendMessage(string.Format("Usage: /genwebs (number of webs to generate)"));
+                args.Player.SendMessage(string.Format("Usage: /genwebs (number of webs to generate)"), Color.Green);
             }
-        }
-        private void DoMineHouse(CommandArgs args)
-        {
-            int tryX = args.Player.TileX;
-            int tryY = args.Player.TileY;
-            WorldGen.MineHouse(tryX, tryY +1);
-            InformPlayers();
-        }
-        private void DoIslandHouse(CommandArgs args)
-        {
-            int tryX = args.Player.TileX;
-            int tryY = args.Player.TileY;
-            WorldGen.IslandHouse(tryX, tryY +1);
-            InformPlayers();
         }
 
         private void DoTrees(CommandArgs args)
@@ -671,7 +684,7 @@ namespace WorldRefill
             {
                 for (int y = args.Player.TileY - offset; y < args.Player.TileY +offset; y++  )
                 {
-                    if (Main.tile[z, y].active)
+                    if (Main.tile[z, y].active())
                     {
                         WorldGen.SpreadGrass(z, y ,59, 70, false );
 
@@ -680,36 +693,7 @@ namespace WorldRefill
             }
 
                 InformPlayers();
-            args.Player.SendMessage("Mushroom Farm generated.");
-        }
-        private void DoIsland(CommandArgs args)
-        {
-            int tryX = args.Player.TileX;
-            int tryY = args.Player.TileY;
-            WorldGen.FloatingIsland(tryX, tryY -50);
-            const int offset = 100;
-            for (int z = args.Player.TileX - offset; z < args.Player.TileX + offset; z++)
-            {
-                for (int y = args.Player.TileY - offset ; y < args.Player.TileY; y++)
-                {
-                    if (Main.tile[z, y].active)
-                    {
-                        WorldGen.SpreadGrass(z, y, 0, 2, false);
-
-                    }
-                }
-            }
-            InformPlayers();
-            args.Player.SendMessage("I made you a nice little island",Color.Green);
-        }
-        private void DoLake(CommandArgs args)
-        {
-            int tryX = args.Player.TileX;
-            int tryY = args.Player.TileY;
-            const int yoffset = 20;
-
-            WorldGen.Lakinater(tryX, tryY +yoffset);
-            InformPlayers();
+                args.Player.SendMessage("Mushroom Farm generated.", Color.Green);
         }
 
         private void DoHV(CommandArgs args)
@@ -732,101 +716,6 @@ namespace WorldRefill
             ypos = meY + bump;
             start--;
             width++;
-            int tl = 121;
-            int wl = 25;
-            int a = WorldGen.genRand.Next(1, 14);
-            switch (a)
-            {
-                case 1:
-                    tl = 38;
-                    break;
-                case 2:
-                    tl = 30;
-                    break;
-                case 3:
-                    tl = 41;
-                    break;
-                case 4:
-                    tl = 43;
-                    break;
-                case 5:
-                    tl = 44;
-                    break;
-                case 6:
-                    tl = 45;
-                    break;
-                case 7:
-                    tl = 46;
-                    break;
-                case 8:
-                    tl = 47;
-                    break;
-                case 9:
-                    tl = 75;
-                    break;
-                case 10:
-                    tl = 76;
-                    break;
-                case 11:
-                    tl = 119;
-                    break;
-                case 12:
-                    tl = 121;
-                    break;
-                case 13:
-                    tl = 122;
-                    break;
-            }
-            a = WorldGen.genRand.Next(1, 16);
-            switch (a)
-            {
-                case 1:
-                    wl = 4;
-                    break;
-                case 2:
-                    wl = 5;
-                    break;
-                case 3:
-                    wl = 6;
-                    break;
-                case 4:
-                    wl = 10;
-                    break;
-                case 5:
-                    wl = 11;
-                    break;
-                case 6:
-                    wl = 12;
-                    break;
-                case 7:
-                    wl = 17;
-                    break;
-                case 8:
-                    wl = 18;
-                    break;
-                case 9:
-                    wl = 19;
-                    break;
-                case 10:
-                    wl = 20;
-                    break;
-                case 11:
-                    wl = 21;
-                    break;
-                case 12:
-                    wl = 23;
-                    break;
-                case 13:
-                    wl = 24;
-                    break;
-                case 14:
-                    wl = 25;
-                    break;
-                case 15:
-                    wl = 26;
-                    break;
-            }
-
             for (cx=start; cx < width + start; cx++)
             {
                 int xc;
@@ -835,57 +724,105 @@ namespace WorldRefill
 //                   WorldGen.KillTile(cx, xc,false,false,false);
                     if ((cx == start) || (cx == width + start - 1))
                     {
-                        Main.tile[cx, xc].type = (byte) tl;
-                        Main.tile[cx, xc].active = true;
+                        Main.tile[cx, xc].type = 121;
+                        Main.tile[cx, xc].active(true);
                     }
                     else
                     {
                         WorldGen.KillTile(cx, xc, false, false, false);
-                        Main.tile[cx, xc].wall = (byte) wl;
+                        Main.tile[cx, xc].wall = 25;
                     }
         //            Log.ConsoleError(string.Format("pos - x: {0} y: {1}",cx,xc));
                 }
             }
 
 
-            InformPlayers();
-        }
-
-        private void DoMountain(CommandArgs args)
-        {
-            int tryX = args.Player.TileX;
-            int tryY = args.Player.TileY;
-            const int yoffset = 20;
-
-
-            WorldGen.Mountinater(tryX, tryY - yoffset);
-            InformPlayers();
-            args.Player.SendMessage("Gotta get you out of here");
-
-            while (tryY - yoffset >30)
-            {
-                tryY -= yoffset;
-                if (Main.tile[tryX, tryY].active) continue;
-                args.Player.Teleport(tryX, tryY + 3);
-                args.Player.SendMessage("I got your back bro :)");
-                break;
-            }
-            InformPlayers();
+            InformPlayers(true);
         }
 
         private void CountEmpties(CommandArgs args)
         {
-            if( args.Parameters.Count == 0 )
+
+            //Code stold from InanZen - Not implemented yet
+            //// -------------- Chests  ----------------------
+            //int chests = 0;
+            //try
+            //{
+            //    switch (TShock.Config.StorageType.ToLower())
+            //    {
+            //        case "mysql":
+            //            string[] host = TShock.Config.MySqlHost.Split(':');
+            //            ChestDB = new MySqlConnection()
+            //            {
+            //                ConnectionString = string.Format("Server={0}; Port={1}; Database={2}; Uid={3}; Pwd={4};",
+            //                    host[0],
+            //                    host.Length == 1 ? "3306" : host[1],
+            //                    TShock.Config.MySqlDbName,
+            //                    TShock.Config.MySqlUsername,
+            //                    TShock.Config.MySqlPassword)
+            //            };
+            //            break;
+            //        case "sqlite":
+            //            string sql = Path.Combine(TShock.SavePath, "chests.sqlite");
+            //            ChestDB = new SqliteConnection(string.Format("uri=file://{0},Version=3", sql));
+            //            break;
+            //    }
+            //    TShock.Utils.Broadcast(" -> generating chests...", Color.DarkMagenta);
+            //    Log.ConsoleInfo(" -> generating chests..");
+            //    ChestDB.Query("DELETE FROM Chests WHERE X BETWEEN @0 AND @1 AND Y BETWEEN @2 AND @3", startX, startX + startW, startY, startY + startH);
+            //    iterations = h / 40;
+            //    Main.chest[0] = null;
+            //    for (int i = 1; i <= iterations; i++)
+            //    {
+            //        int y = curY + RandomNumber((int)((i - 1) * ((float)h / iterations)), (int)(i * ((float)h / iterations)));
+            //        for (int x = curX; x < curX + w; x++)
+            //        {
+            //            if (!Main.tile[x, y].active && Main.tile[x, y + 1].active)
+            //            {
+            //                try
+            //                {
+            //                    if (WorldGen.PlaceChest(x, y) == 0)
+            //                    {
+            //                        NetItem[] items = new NetItem[4];
+            //                        for (int j = 0; j < 4; j++)
+            //                        {
+            //                            Item item = new Item();
+            //                            item.netDefaults(RandomNumber(1, 364));
+            //                            if (item.maxStack > 1)
+            //                                item.stack = RandomNumber(1, item.maxStack / 2);
+            //                            items[j] = new NetItem { netID = item.netID, stack = item.stack, prefix = 0 };
+            //                        }
+            //                        ChestDB.Query("INSERT INTO Chests (X, Y, Account, Flags, Items, Password, WorldID) VALUES (@0, @1, @2, @3, @4, \'\', @5)",
+            //                            x, y - 1, "", 0, String.Format("{0},{1},0,{2},{3},0,{4},{5},0,{6},{7},0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0", items[0].netID, items[0].stack, items[1].netID, items[1].stack, items[2].netID, items[2].stack, items[3].netID, items[3].stack), Main.worldID);
+            //                        Main.chest[0] = null;
+            //                        x += 100;
+            //                        y = curY + RandomNumber((int)((i - 1) * ((float)h / iterations)), (int)(i * ((float)h / iterations)));
+            //                        chests++;
+            //                    }
+            //                }
+            //                catch { }
+            //            }
+            //        }
+            //    }
+            //    ChestDB.Dispose();
+            //}
+            //catch (Exception ex)
+            //{
+            //    Log.ConsoleError(ex.ToString());
+            //}
+            ////--------------------------
+            
+            if (args.Parameters.Count == 0 || args.Parameters.Count > 2)
             {
-                args.Player.SendMessage( "Usage: /genchests <amount> [use hardmode items true/false]");
+                args.Player.SendMessage("Usage: /genchests <amount> [gen mode: default/easy/all]", Color.Green);
             }
             int empty = 0;
             int tmpEmpty = 0;
             int chests = 0;
-            bool useHardmode = true;
+            string setting = "default";
             if( args.Parameters.Count > 1 )
             {
-                bool.TryParse(args.Parameters[1], out useHardmode);
+                setting = args.Parameters[1];
             }
             const int maxtries = 100000;
             Int32.TryParse(args.Parameters[0], out chests);
@@ -913,10 +850,8 @@ namespace WorldRefill
 
                 }
 
-
             }
-            TShock.Utils.Broadcast(string.Format("uprooted {0} empty out of {1} chests.", empty, tmpEmpty));
-            InformPlayers();
+            args.Player.SendMessage(string.Format("uprooted {0} empty out of {1} chests.", empty, tmpEmpty), Color.Green);
             if (chests + tmpEmpty + threshold > 1000)
                 chests = 1000 - tmpEmpty - threshold;
             if (chests >0)
@@ -927,30 +862,49 @@ namespace WorldRefill
                 int newcount = 0;
                 while (newcount < chests)
                 {
-                    int cap = 603;
-                    if( !useHardmode )
+                    int contain;
+                    if( setting == "default" )
                     {
-                        cap = 363;
+                        // Default Items: Grenade(168), Copper Bar(20), Iron Bar(22), Wooden Arrow(40), Shuriken(42), Lesser Healing Potion(28), Ironskin Potion(292), Shine Potion (298), 
+                        // Night Owl Potion(299), Swiftness Potion(290), Torch(8), Bottle(31), Silver Coin(72), Spear(280), Wooden Boomerang(284), Blowpipe(281), Glowstick(282),
+                        // Throwing Knife(279), Aglet(285), Silver Bar(21), Regeneration Potion(289), Archery Potion(303), Gills Potion(291), Hunter Potion(304), Band of Regeneration(49),
+                        // Magic Mirror(50), Angel Statue(52), Cloud in a Bottle(53), Hermes Boots(54), Enchanted Boomerang(55), Jester's Arrow(51), Suspicious Looking Eye(43), Dynamite(167),
+                        // Healing Potion(188), Featherfall Potion(295), Water Walking Potion(302), Gravitation Potion(305), Gold Coin(73), Thorns Potion(301), Shiny Red Baloon(159), Starfury(65),
+                        // Lucky Horseshoe(158), Meteorite Bar(117), Hellfire Arrow(265), Magic Power Potion(294), Obsidian Skin Potion(288), Invisibility Potion(297), Battle Potion(300),
+                        // Flamelash (218), Flower of Fire(112), Sunfury(220)
+                        // ID's Only: 168, 20, 22, 40, 42, 28, 292, 298, 299, 290, 8, 31, 72, 280, 284, 281, 282, 279, 285, 21, 289, 303, 291, 304, 49, 50, 52, 53, 54, 55, 51, 43, 167, 188, 295, 302, 305, 73, 301, 159, 65, 158, 117, 265, 294, 288, 297, 300, 218, 112, 220
+                        
+                        // Plugin Version 1.2 - New Items: Rope Coil(985), Guide Voodoo Doll(267), Cobalt Shield(156)
+
+                        int[] itemID = new int[] { 168, 20, 22, 40, 42, 28, 292, 298, 299, 290, 8, 31, 72, 280, 284, 281, 282, 279, 285, 21, 289, 303, 291, 304, 49, 50, 52, 53, 54, 55, 51, 43, 167, 188, 295, 302, 305, 73, 301, 159, 65, 158, 117, 265, 294, 288, 297, 300, 218, 112, 220, 985, 267, 156 };
+                        contain = itemID[WorldGen.genRand.Next(0, itemID.GetUpperBound(0))];
                     }
-                    int contain = WorldGen.genRand.Next(1, cap);
+                    else if (setting == "all")
+                    {
+                        contain = WorldGen.genRand.Next(1, 1603);
+                    }
+                    else if (setting == "easy")
+                    {
+                        contain = WorldGen.genRand.Next(1, 363);
+                    }
+                    else
+                    {
+                        args.Player.SendMessage(string.Format("Warning! Typo in second argument: {0}",args.Parameters[1]), Color.Red);
+                        return;
+                    }
                     int tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
                     int tryY = WorldGen.genRand.Next((int) Main.worldSurface, Main.maxTilesY - 200);
-                        while (!Main.tile[tryX, tryY].active)
+                        while (!Main.tile[tryX, tryY].active())
                         {
                             tryY++;
                         }
                         tryY--;
-
-
-
                     WorldGen.KillTile(tryX, tryY, false, false, false);
                     WorldGen.KillTile(tryX +1 , tryY, false, false, false);
                     WorldGen.KillTile(tryX, tryY + 1, false, false, false);
                     WorldGen.KillTile(tryX + 1, tryY, false, false, false);
 
-                      
-
-                    if (WorldGen.AddBuriedChest(tryX, tryY, contain, false, 1))
+                    if (WorldGen.AddBuriedChest(tryX, tryY, contain, true, 1))
                     {
                         chestcount++;
                         newcount++;
@@ -960,7 +914,7 @@ namespace WorldRefill
 
                     tries++;
                 }
-                args.Player.SendMessage(string.Format("generated {0} new chests - {1} total", newcount, chestcount));
+                args.Player.SendMessage(string.Format("generated {0} new chests - {1} total", newcount, chestcount), Color.Green);
                 InformPlayers();
             }
         }
