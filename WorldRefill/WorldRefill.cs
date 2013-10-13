@@ -27,7 +27,7 @@ namespace WorldRefill
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoStatues, "genstatues"));   //Statues
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoOres, "genores"));         //ores
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoWebs, "genwebs"));         //webs
-            //Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoMineHouse, "genhouse"));   //mine house
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoMineHouse, "genhouse"));   //mine house
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoTrees, "gentrees"));       //trees
             //Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoIsland, "genisland"));     //floating island
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoShrooms, "genpatch"));     //mushroom patch
@@ -36,6 +36,7 @@ namespace WorldRefill
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", CountEmpties, "genchests"));    //chests
             //Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoIslandHouse, "genihouse"));    //island house
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoHV, "hellavator"));
+			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoPyramid, "genpyramid"));
             }
 
         protected override void Dispose(bool disposing)
@@ -57,7 +58,7 @@ namespace WorldRefill
         }
         public override string Author
         {
-            get { return "by k0rd / Updated by IcyPhoenix and Enerdy"; }
+            get { return "by k0rd, IcyPhoenix and Enerdy"; }
         }
         public override string Description
         {
@@ -73,21 +74,16 @@ namespace WorldRefill
                 {
                     //Spams too much if set on a timer and all of them fire at the sametime
                     //person.SendMessage("The server is sending you map data due to world restock...");
-                    if (hard)
-                    {
-                        var myX = person.TileX;
-                        var myy = person.TileY;
-                        person.SendTileSquare(person.TileX, person.TileY, 150);
-                        int count;
-                        for (count = person.TileY; count < Main.maxTilesY; count += 150)
-                        {
-                            person.Teleport(person.TileX + 1, count);
-                        }
-                        person.Teleport(myX, myy);
-                    }
-
-                else
-                        person.SendTileSquare(person.TileX, person.TileY, 150);
+								for (int i = 0; i < 255; i++)
+								{
+									for (int j = 0; j < Main.maxSectionsX; j++)
+									{
+										for (int k = 0; k < Main.maxSectionsY; k++)
+										{
+											Netplay.serverSock[i].tileSection[j, k] = false;
+										}
+									}
+								}
                 }
             }
 
@@ -695,8 +691,26 @@ namespace WorldRefill
                 InformPlayers();
                 args.Player.SendMessage("Mushroom Farm generated.", Color.Green);
         }
+		
+		private void DoPyramid(CommandArgs args)
+		{
+			int tryX = args.Player.TileX;
+			int tryY = args.Player.TileY;
+			bool resulta;
+			resulta=WorldGen.Pyramid(tryX, tryY);
+			
+			if (resulta)
+			{
+				InformPlayers();
+				args.Player.SendMessage("A pyramid was created.", Color.Green);
+			}
+			else
+			{
+				args.Player.SendMessage("A pyramid cannot be created here.", Color.Red);
+			}
+		}
 
-        private void DoHV(CommandArgs args)
+		private void DoHV(CommandArgs args)
         {
             int meX = args.Player.TileX;
             int meY = args.Player.TileY;
@@ -716,30 +730,137 @@ namespace WorldRefill
             ypos = meY + bump;
             start--;
             width++;
+            int tl = 121;
+            int wl = 25;
+            int a = WorldGen.genRand.Next(1, 14);
+            switch (a)
+            {
+                case 1:
+                    tl = 38;
+                    break;
+                case 2:
+                    tl = 30;
+                    break;
+                case 3:
+                    tl = 41;
+                    break;
+                case 4:
+                    tl = 43;
+                    break;
+                case 5:
+                    tl = 44;
+                    break;
+                case 6:
+                    tl = 45;
+                    break;
+                case 7:
+                    tl = 46;
+                    break;
+                case 8:
+                    tl = 47;
+                    break;
+                case 9:
+                    tl = 75;
+                    break;
+                case 10:
+                    tl = 76;
+                    break;
+                case 11:
+                    tl = 119;
+                    break;
+                case 12:
+                    tl = 121;
+                    break;
+                case 13:
+                    tl = 122;
+                    break;
+            }
+            a = WorldGen.genRand.Next(1, 16);
+            switch (a)
+            {
+                case 1:
+                    wl = 4;
+                    break;
+                case 2:
+                    wl = 5;
+                    break;
+                case 3:
+                    wl = 6;
+                    break;
+                case 4:
+                    wl = 10;
+                    break;
+                case 5:
+                    wl = 11;
+                    break;
+                case 6:
+                    wl = 12;
+                    break;
+                case 7:
+                    wl = 17;
+                    break;
+                case 8:
+                    wl = 18;
+                    break;
+                case 9:
+                    wl = 19;
+                    break;
+                case 10:
+                    wl = 20;
+                    break;
+                case 11:
+                    wl = 21;
+                    break;
+                case 12:
+                    wl = 23;
+                    break;
+                case 13:
+                    wl = 24;
+                    break;
+                case 14:
+                    wl = 25;
+                    break;
+                case 15:
+                    wl = 26;
+                    break;
+            }
+
             for (cx=start; cx < width + start; cx++)
             {
                 int xc;
                 for (xc = ypos; xc < bottom; xc++)
                 {
-//                   WorldGen.KillTile(cx, xc,false,false,false);
                     if ((cx == start) || (cx == width + start - 1))
                     {
-                        Main.tile[cx, xc].type = 121;
+                        Main.tile[cx, xc].type = (byte) tl;
                         Main.tile[cx, xc].active(true);
                     }
                     else
                     {
                         WorldGen.KillTile(cx, xc, false, false, false);
-                        Main.tile[cx, xc].wall = 25;
+                        Main.tile[cx, xc].wall = (byte) wl;
                     }
-        //            Log.ConsoleError(string.Format("pos - x: {0} y: {1}",cx,xc));
                 }
             }
 
 
-            InformPlayers(true);
+            InformPlayers();
+			args.Player.SendMessage("Going down?", Color.Green);
         }
-
+		private void DoMineHouse(CommandArgs args)
+        {
+            int tryX = args.Player.TileX;
+            int tryY = args.Player.TileY;
+            WorldGen.MineHouse(tryX, tryY +1);
+            InformPlayers();
+        }
+        private void DoIslandHouse(CommandArgs args)
+        {
+            int tryX = args.Player.TileX;
+            int tryY = args.Player.TileY;
+            WorldGen.IslandHouse(tryX, tryY +1);
+            InformPlayers();
+        }
         private void CountEmpties(CommandArgs args)
         {
 
