@@ -26,12 +26,12 @@ namespace WorldRefill
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoWebs, "genwebs"));         //webs
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoMineHouse, "genhouse"));   //mine house
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoTrees, "gentrees"));       //trees
-            //Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoIsland, "genisland"));     //floating island
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoIsland, "genisland"));     //floating island
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoShrooms, "genpatch"));     //mushroom patch
             //Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoLake, "genlake"));         //lake
             //Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoMountain, "genmountain")); //mountain
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", CountEmpties, "genchests"));    //chests
-            //Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoIslandHouse, "genihouse"));    //island house
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoIslandHouse, "genihouse"));    //island house
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoHV, "hellavator"));
 			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoPyramid, "genpyramid"));
             }
@@ -850,6 +850,7 @@ namespace WorldRefill
             int tryX = args.Player.TileX;
             int tryY = args.Player.TileY;
             WorldGen.MineHouse(tryX, tryY +1);
+			args.Player.SendMessage("Attempted to generate a Mine House here.",Color.Green);
             InformPlayers();
         }
         private void DoIslandHouse(CommandArgs args)
@@ -857,8 +858,20 @@ namespace WorldRefill
             int tryX = args.Player.TileX;
             int tryY = args.Player.TileY;
             WorldGen.IslandHouse(tryX, tryY +1);
+			args.Player.SendMessage("Attempted to generate an Island House here.",Color.Green);
             InformPlayers();
         }
+		
+		private void DoIsland(CommandArgs args)
+		{
+			int tryX = args.Player.TileX;
+			int tryY = args.Player.TileY;
+			if (tryY <= 50)
+				tryY=51;
+			WorldGen.CloudIsland(tryX, tryY -50);
+			args.Player.SendMessage("Attempted to generate a floating island above you.",Color.Green);
+			InformPlayers();
+		}
         private void CountEmpties(CommandArgs args)
         {
 
