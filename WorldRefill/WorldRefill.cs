@@ -4,9 +4,6 @@ using TShockAPI;
 using Terraria;
 using TerrariaApi.Server;
 
-// using TShockAPI.DB;
-//using Mono.Data.Sqlite;
-//using MySql.Data.MySqlClient;
 
 namespace WorldRefill
 {
@@ -58,7 +55,7 @@ namespace WorldRefill
         }
         public override string Author
         {
-            get { return "by k0rd, IcyPhoenix and Enerdy"; }
+            get { return "k0rd, IcyPhoenix and Enerdy"; }
         }
         public override string Description
         {
