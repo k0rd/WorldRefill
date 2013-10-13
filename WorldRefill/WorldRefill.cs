@@ -50,7 +50,7 @@ namespace WorldRefill
 
         public override Version Version
         {
-            get { return new Version("1.2"); }
+            get { return new Version("1.4"); }
         }
         public override string Name
         {
@@ -72,18 +72,16 @@ namespace WorldRefill
             {
                 if ((person != null) && (person.Active))
                 {
-                    //Spams too much if set on a timer and all of them fire at the sametime
-                    //person.SendMessage("The server is sending you map data due to world restock...");
-								for (int i = 0; i < 255; i++)
-								{
-									for (int j = 0; j < Main.maxSectionsX; j++)
-									{
-										for (int k = 0; k < Main.maxSectionsY; k++)
-										{
-											Netplay.serverSock[i].tileSection[j, k] = false;
-										}
-									}
-								}
+				for (int i = 0; i < 255; i++)
+					{
+						for (int j = 0; j < Main.maxSectionsX; j++)
+						{
+							for (int k = 0; k < Main.maxSectionsY; k++)
+							{
+								Netplay.serverSock[i].tileSection[j, k] = false;
+							}
+						}
+					}
                 }
             }
 
@@ -274,7 +272,7 @@ namespace WorldRefill
                 {
                     var tryX = WorldGen.genRand.Next(20, Main.maxTilesX -20);
                     var tryY = WorldGen.genRand.Next((int)surface + 20, Main.maxTilesY -300);
-                    var tryType = WorldGen.genRand.Next((int) 2, 44);
+                    var tryType = WorldGen.genRand.Next((int) 2, 47);
                    
                     while (!Main.tile[tryX, tryY].active())
                     {
@@ -346,6 +344,9 @@ namespace WorldRefill
                                              "King",
                                              "Queen",
                                              "Piranha",
+											 "Lihzahrd",
+											 "Lihzhard Watcher",
+											 "Lihzahrd Guardian",
                                              "Ukown"
                                          };
 
