@@ -520,6 +520,10 @@ namespace WorldRefill
             {
                 oreType = 169;
             }
+            else if (args.Parameters[0].ToLower() == "crimtane") //NEW
+            {
+                oreType = 204;
+            }
 
             // 1.2 Hardmode Ores
             else if (args.Parameters[0].ToLower() == "palladium")
@@ -568,7 +572,7 @@ namespace WorldRefill
                 int i2 = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
                 double worldY = Main.worldSurface;
                 //Rare Ores  - Adamantite (Titanium), Demonite, Diamond, Chlorophyte
-                if ((oreType == 111) || (oreType == 22) || (oreType == 211) || (oreType == 223) || (oreType >= 63) && (oreType <= 68))
+                if ((oreType == 111) || (oreType == 22) || (oreType == 204) || (oreType == 211) || (oreType == 223) || (oreType >= 63) && (oreType <= 68))
                 {
                     //Some formula created by k0rd for getting somewhere between hell and roughly half way after rock
                     worldY = (Main.rockLayer + Main.rockLayer + (double)Main.maxTilesY) / 3.0;
