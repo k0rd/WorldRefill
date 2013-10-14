@@ -34,6 +34,7 @@ namespace WorldRefill
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoIslandHouse, "genihouse"));    //island house
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoHV, "hellavator"));
 			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoPyramid, "genpyramid"));
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoCloudIsland, "gencisland")); // NEW
             }
 
         protected override void Dispose(bool disposing)
@@ -47,7 +48,7 @@ namespace WorldRefill
 
         public override Version Version
         {
-            get { return new Version("1.4"); }
+            get { return new Version("1.5"); }
         }
         public override string Name
         {
@@ -533,6 +534,16 @@ namespace WorldRefill
             {
                 oreType = 223;
             }
+            else if (args.Parameters[0].ToLower() == "chlorophyte") //NEW
+            {
+                oreType = 211;
+            }
+
+            // Others
+            else if (args.Parameters[0].ToLower() == "silt") //NEW
+            {
+                oreType = 123;
+            }
             else
             {
                 ply.SendMessage("Warning! Typo in Tile name or Tile does not exist", Color.Red);    //should this be a help message instead?
@@ -556,8 +567,8 @@ namespace WorldRefill
                 //Get random number from 100 tiles each side
                 int i2 = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
                 double worldY = Main.worldSurface;
-                //Rare Ores  - Adamantite (Titanium), Demonite, Diamond
-                if ((oreType == 111) || (oreType == 22) || (oreType == 223) || (oreType >= 63) && (oreType <= 68))
+                //Rare Ores  - Adamantite (Titanium), Demonite, Diamond, Chlorophyte
+                if ((oreType == 111) || (oreType == 22) || (oreType == 211) || (oreType == 223) || (oreType >= 63) && (oreType <= 68))
                 {
                     //Some formula created by k0rd for getting somewhere between hell and roughly half way after rock
                     worldY = (Main.rockLayer + Main.rockLayer + (double)Main.maxTilesY) / 3.0;
@@ -872,6 +883,18 @@ namespace WorldRefill
 			args.Player.SendMessage("Attempted to generate a floating island above you.",Color.Green);
 			InformPlayers();
 		}
+
+        private void DoCloudIsland(CommandArgs args)
+        {
+            int tryX = args.Player.TileX;
+            int tryY = args.Player.TileY;
+            WorldGen.CloudIsland(tryX, tryY + 9);
+            WorldGen.IslandHouse(tryX, tryY + 1);
+
+            args.Player.SendMessage("Attempted to generate an un-looted floating island at your position.", Color.Green);
+            InformPlayers();
+        }
+
         private void CountEmpties(CommandArgs args)
         {
 
