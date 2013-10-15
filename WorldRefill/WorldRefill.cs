@@ -20,21 +20,21 @@ namespace WorldRefill
         private static Config config;
         public override void Initialize()
         {
-            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoCrystals, "gencrystals")); //Life Crystals
-            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoPots, "genpots"));         //Pots
-            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoOrbs, "genorbs"));         //Orbs
-            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoAltars, "genaltars"));     //Demon Altars
-            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoTraps, "gentraps"));       //Traps
-            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoStatues, "genstatues"));   //Statues
-            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoOres, "genores"));         //ores
-            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoWebs, "genwebs"));         //webs
-            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoMineHouse, "genhouse"));   //mine house
-            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoTrees, "gentrees"));       //trees
-            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoIsland, "genisland"));     //floating island
-            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoShrooms, "genpatch"));     //mushroom patch
-            //Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoLake, "genlake"));         //lake
-            //Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoMountain, "genmountain")); //mountain
-            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", CountEmpties, "genchests"));    //chests
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoCrystals, "gencrystals"));     //Life Crystals
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoPots, "genpots"));             //Pots
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoOrbs, "genorbs"));             //Orbs
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoAltars, "genaltars"));         //Demon Altars
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoTraps, "gentraps"));           //Traps
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoStatues, "genstatues"));       //Statues
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoOres, "genores"));             //ores
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoWebs, "genwebs"));             //webs
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoMineHouse, "genhouse"));       //mine house
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoTrees, "gentrees"));           //trees
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoIsland, "genisland"));         //floating island
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoShrooms, "genpatch"));         //mushroom patch
+            //Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoLake, "genlake"));           //lake
+            //Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoMountain, "genmountain"));   //mountain
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", CountEmpties, "genchests"));     //chests
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoIslandHouse, "genihouse"));    //island house
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoHV, "hellavator"));
 			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoPyramid, "genpyramid"));
@@ -246,7 +246,7 @@ namespace WorldRefill
                     var tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
                     var tryY = WorldGen.genRand.Next((int)surface + 20, Main.maxTilesY);
 
-                    if ((!Main.tile[tryX, tryY].active()) && (Main.tile[tryX, tryY].wall == (byte)3))
+                    if ((!Main.tile[tryX, tryY].active()) && ((Main.tile[tryX, tryY].wall == (byte)3) || (Main.tile[tryX, tryY].wall == (byte)83)))
                     {
                         WorldGen.AddShadowOrb(tryX, tryY);
                         if (Main.tile[tryX, tryY].type == 31)
