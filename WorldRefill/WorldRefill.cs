@@ -36,7 +36,7 @@ namespace WorldRefill
             //Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoMountain, "genmountain"));   //mountain
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", CountEmpties, "genchests"));     //chests
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoIslandHouse, "genihouse"));    //island house
-            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoHV, "hellavator"));
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoHV, "hellevator"));
 			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoPyramid, "genpyramid"));
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoCloudIsland, "gencisland")); // NEW
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", ConfigReload, "refillreload")); // NEW
