@@ -923,6 +923,8 @@ namespace WorldRefill
                     {
                         Main.tile[cx, xc].type = (byte) tl;
                         Main.tile[cx, xc].active(true);
+						Main.tile[cx, xc].slope(0);
+						Main.tile[cx, xc].halfBrick(false);
                     }
                     else
                     {
