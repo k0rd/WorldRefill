@@ -1,10 +1,15 @@
 ﻿using System;
-using System.IO; //NEW
+using System.IO;
 using System.Collections.Generic;
 using TShockAPI;
+using TShockAPI.DB;
 using Terraria;
 using TerrariaApi.Server;
-using Newtonsoft.Json; //NEW
+using Newtonsoft.Json;
+using System.Data;
+using Mono.Data.Sqlite;
+using MySql.Data.MySqlClient;
+using System.Text;
 
 
 namespace WorldRefill
@@ -16,8 +21,9 @@ namespace WorldRefill
             : base(game)
         {
         }
-        private static string savepath = TShock.SavePath; //NEW
+        private static string savepath = TShock.SavePath;
         private static Config config;
+		private IDbConnection ChestDB;
         public override void Initialize()
         {
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoCrystals, "gencrystals"));     //Life Crystals
@@ -129,6 +135,7 @@ namespace WorldRefill
         class Config
         {
             public int[] DefaultChestIDs = new int[] { 168, 20, 22, 40, 42, 28, 292, 298, 299, 290, 8, 31, 72, 280, 284, 281, 282, 279, 285, 21, 289, 303, 291, 304, 49, 50, 52, 53, 54, 55, 51, 43, 167, 188, 295, 302, 305, 73, 301, 159, 65, 158, 117, 265, 294, 288, 297, 300, 218, 112, 220, 985, 267, 156 };
+			public bool UseInfiniteChests = false;
         }
         //Updating all players
         public static void InformPlayers(bool hard=false)
@@ -1056,6 +1063,8 @@ namespace WorldRefill
             int empty = 0;
             int tmpEmpty = 0;
             int chests = 0;
+			int maxChests=1000;
+			
             string setting = "default";
             if( args.Parameters.Count > 1 )
             {
@@ -1064,7 +1073,8 @@ namespace WorldRefill
             const int maxtries = 100000;
             Int32.TryParse(args.Parameters[0], out chests);
             const int threshold = 100;
-            for (int x = 0; x < 1000; x++)
+			if (!config.UseInfiniteChests){
+            for (int x = 0; x < maxChests; x++)
             {
                 if (Main.chest[x] != null)
                 {
@@ -1089,8 +1099,37 @@ namespace WorldRefill
 
             }
             args.Player.SendMessage(string.Format("uprooted {0} empty out of {1} chests.", empty, tmpEmpty), Color.Green);
-            if (chests + tmpEmpty + threshold > 1000)
-                chests = 1000 - tmpEmpty - threshold;
+			}
+			else
+			{
+			maxChests=maxtries;
+				try{
+                switch (TShock.Config.StorageType.ToLower())
+                {
+                    case "mysql":
+                        string[] host = TShock.Config.MySqlHost.Split(':');
+                        ChestDB = new MySqlConnection()
+                        {
+                            ConnectionString = string.Format("Server={0}; Port={1}; Database={2}; Uid={3}; Pwd={4};",
+                                host[0],
+                                host.Length == 1 ? "3306" : host[1],
+                                TShock.Config.MySqlDbName,
+                                TShock.Config.MySqlUsername,
+                                TShock.Config.MySqlPassword)
+                        };
+                        break;
+                    case "sqlite":
+                        string sql = Path.Combine(TShock.SavePath, "chests.sqlite");
+                        ChestDB = new SqliteConnection(string.Format("uri=file://{0},Version=3", sql));
+                        break;
+                }
+				} catch (Exception ex)
+				{
+					Log.ConsoleError(ex.ToString());
+				}
+			}
+            if (chests + tmpEmpty + threshold > maxChests)
+                chests = maxChests - tmpEmpty - threshold;
             if (chests >0)
             {
                 int chestcount = 0;
@@ -1135,12 +1174,41 @@ namespace WorldRefill
                     {
                         chestcount++;
                         newcount++;
+						if (config.UseInfiniteChests)
+						{
+						
+						 StringBuilder items = new StringBuilder();                   
+                                Terraria.Chest c = Main.chest[0];
+                                if (c != null)
+                                {
+                                        for (int j = 0; j < 40; j++)
+                                        {
+                                                items.Append(c.item[j].netID + "," + c.item[j].stack + "," + c.item[j].prefix);
+                                                if (j != 39)
+                                                {
+                                                        items.Append(",");
+                                                }
+                                        }
+										try{
+                                        ChestDB.Query("INSERT INTO Chests (X, Y, Account, Items, WorldID) VALUES (@0, @1, '', @2, @3)",
+                                                c.x, c.y, items.ToString(), Main.worldID);
+                                        }catch (Exception ex)
+										{
+										Log.ConsoleError(ex.ToString());
+										}
+                                        items.Clear();
+                                        Main.chest[0] = null;
+                                }
+                        }
+						
                     }
                     if (tries + 1 >= maxtries)
                         break;
 
                     tries++;
                 }
+				if (config.UseInfiniteChests)
+					ChestDB.Dispose();
                 args.Player.SendMessage(string.Format("generated {0} new chests - {1} total", newcount, chestcount), Color.Green);
                 InformPlayers();
             }
