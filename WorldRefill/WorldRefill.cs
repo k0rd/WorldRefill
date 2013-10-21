@@ -1032,7 +1032,7 @@ namespace WorldRefill
 			}
 			else
 			{
-			maxChests=maxtries;
+
 				try{
                 switch (TShock.Config.StorageType.ToLower())
                 {
