@@ -14,7 +14,7 @@ using System.Text;
 
 namespace WorldRefill
 {
-    [ApiVersion(1, 14)]
+    [ApiVersion(1, 15)]
     public class WorldRefill : TerrariaPlugin
     {
         public WorldRefill(Main game)
@@ -60,7 +60,7 @@ namespace WorldRefill
 
         public override Version Version
         {
-            get { return new Version("1.6"); }
+            get { return new Version("1.7"); }
         }
         public override string Name
         {
@@ -497,7 +497,7 @@ namespace WorldRefill
                 WorldGen.genRand = new Random();
 
             TSPlayer ply = args.Player;
-            int oreType;
+            ushort oreType;
             float oreAmts = 100f;
             //Sigh why did I bother checking what this does...gets completely overwritten
             //Mod altarcount divide 3 - gives number between: 0 to 2
