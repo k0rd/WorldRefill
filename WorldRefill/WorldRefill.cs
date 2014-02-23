@@ -44,8 +44,9 @@ namespace WorldRefill
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoIslandHouse, "genihouse"));    //island house
             Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoHV, "hellevator"));
 			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoPyramid, "genpyramid"));
-            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoCloudIsland, "gencisland")); // NEW
-            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", ConfigReload, "refillreload")); // NEW
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoCloudIsland, "gencisland"));   // NEW
+            Commands.ChatCommands.Add(new Command("tshock.world.causeevents", ConfigReload, "refillreload"));  // NEW
+            //Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoLivingTree, "genltree"));      // Added on v1.7.1 (Not working)
             ReadConfig();
             }
 
@@ -60,7 +61,7 @@ namespace WorldRefill
 
         public override Version Version
         {
-            get { return new Version("1.7"); }
+            get { return new Version(1, 7, 1); }
         }
         public override string Name
         {
@@ -984,6 +985,17 @@ namespace WorldRefill
             InformPlayers();
         }
 
+        // Needs revision, does not work for some reason
+        private void DoLivingTree(CommandArgs args)
+        {
+            int tryX = args.Player.TileX;
+            int tryY = args.Player.TileY;
+            WorldGen.GrowLivingTree(tryX, tryY);
+
+            args.Player.SendMessage("Attempted to grow a living tree at your position.", Color.Green);
+            InformPlayers();
+        }
+
         private void CountEmpties(CommandArgs args)
         {
             if (args.Parameters.Count == 0 || args.Parameters.Count > 2)
@@ -1077,7 +1089,7 @@ namespace WorldRefill
                     }
                     else if (setting == "all")
                     {
-                        contain = WorldGen.genRand.Next(1, 1603);
+                        contain = WorldGen.genRand.Next(1, 2288);
                     }
                     else if (setting == "easy")
                     {
