@@ -14,7 +14,7 @@ using System.Text;
 
 namespace WorldRefill
 {
-    [ApiVersion(1, 15)]
+    [ApiVersion(1, 16)]
     public class WorldRefill : TerrariaPlugin
     {
         public WorldRefill(Main game)
@@ -61,7 +61,7 @@ namespace WorldRefill
 
         public override Version Version
         {
-            get { return new Version(1, 7, 1); }
+            get { return new Version(1, 7, 2); }
         }
         public override string Name
         {
@@ -1089,11 +1089,12 @@ namespace WorldRefill
                     }
                     else if (setting == "all")
                     {
-                        contain = WorldGen.genRand.Next(1, 2288);
+						// Updated item list to 1.2.4.1
+                        contain = WorldGen.genRand.Next(-48, 2744);
                     }
                     else if (setting == "easy")
                     {
-                        contain = WorldGen.genRand.Next(1, 363);
+                        contain = WorldGen.genRand.Next(-24, 364);
                     }
                     else
                     {
