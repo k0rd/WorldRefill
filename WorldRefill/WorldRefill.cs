@@ -1,16 +1,16 @@
-﻿using System;
-using System.IO;
+﻿using Mono.Data.Sqlite;
+using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using TShockAPI;
-using TShockAPI.DB;
+using System.Data;
+using System.IO;
+using System.Linq;
+using System.Text;
 using Terraria;
 using TerrariaApi.Server;
-using Newtonsoft.Json;
-using System.Data;
-using Mono.Data.Sqlite;
-using MySql.Data.MySqlClient;
-using System.Text;
-
+using TShockAPI;
+using TShockAPI.DB;
 
 namespace WorldRefill
 {
@@ -24,8 +24,11 @@ namespace WorldRefill
 		private static string savepath = TShock.SavePath;
 		private static Config config;
 		private IDbConnection ChestDB;
+
+		#region Initialize
 		public override void Initialize()
 		{
+			#region Gen Commands
 			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoCrystals, "gencrystals"));		//Life Crystals
 			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoPots, "genpots"));				//Pots
 			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoOrbs, "genorbs"));				//Orbs
@@ -40,16 +43,19 @@ namespace WorldRefill
 			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoShrooms, "genpatch"));			//mushroom patch
 			//Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoLake, "genlake"));			//lake
 			//Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoMountain, "genmountain"));	//mountain
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", CountEmpties, "genchests"));		//chests
+			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoChests, "genchests"));		//chests
 			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoIslandHouse, "genihouse"));		//island house
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoHV, "hellevator"));
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoPyramid, "genpyramid"));
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoCloudIsland, "gencisland"));	// NEW
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", ConfigReload, "refillreload"));	// NEW
-			//Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoLivingTree, "genltree"));		// Added on v1.7.1 (Not working)			
+			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoHV, "hellevator"));				//hellevator
+			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoPyramid, "genpyramid"));		//pyramid
+			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoCloudIsland, "gencisland"));	//cloud island + house
+			//Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoLivingTree, "genltree"));		// Added on v1.7.1 (Not working)
+			#endregion
+			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", ConfigReload, "refillreload"));
 			ReadConfig();
 		}
+		#endregion
 
+		#region Dispose
 		protected override void Dispose(bool disposing)
 		{
 			if (disposing)
@@ -58,10 +64,12 @@ namespace WorldRefill
 			}
 			base.Dispose(disposing);
 		}
+		#endregion
 
+		#region Plugin Info
 		public override Version Version
 		{
-			get { return new Version(1, 7, 2); }
+			get { return new Version(1, 7, 3); }
 		}
 		public override string Name
 		{
@@ -75,8 +83,11 @@ namespace WorldRefill
 		{
 			get { return "Refill your world!"; }
 		}
+		#endregion
 
+		#region Config
 		// Config Code stolen from InanZed's DieMob
+		#region Create
 		private static void CreateConfig()
 		{
 			string filepath = Path.Combine(savepath, "WorldRefillConfig.json");
@@ -99,7 +110,8 @@ namespace WorldRefill
 				config = new Config();
 			}
 		}
-
+		#endregion
+		#region Read
 		private static bool ReadConfig()
 		{
 			string filepath = Path.Combine(savepath, "WorldRefillConfig.json");
@@ -131,45 +143,86 @@ namespace WorldRefill
 			}
 			return false;
 		}
-
-		// Variables to be added to WorldRefillConfig.json | Moved default chest IDs here so that people can edit them
-		class Config
-		{
-			public int[] DefaultChestIDs = new int[] { 168, 20, 22, 40, 42, 28, 292, 298, 299, 290, 8, 31, 72, 280, 284, 281, 282, 279, 285, 21, 289, 303, 291, 304, 49, 50, 52, 53, 54, 55, 51, 43, 167, 188, 295, 302, 305, 73, 301, 159, 65, 158, 117, 265, 294, 288, 297, 300, 218, 112, 220, 985, 267, 156 };
-			public bool UseInfiniteChests = false;
-		}
-		//Updating all players
-		public static void InformPlayers(bool hard = false)
-		{
-			foreach (TSPlayer person in TShock.Players)
-			{
-				if ((person != null) && (person.Active))
-				{
-					for (int i = 0; i < 255; i++)
-					{
-						for (int j = 0; j < Main.maxSectionsX; j++)
-						{
-							for (int k = 0; k < Main.maxSectionsY; k++)
-							{
-								Netplay.serverSock[i].tileSection[j, k] = false;
-							}
-						}
-					}
-				}
-			}
-
-		}
-
+		#endregion
+		#region Reload Command
 		// Config Reload
 		private void ConfigReload(CommandArgs args)
 		{
 			if (ReadConfig())
-				args.Player.SendMessage("WorldEdit config reloaded.", Color.Green);
+				args.Player.SendSuccessMessage("WorldEdit config reloaded.");
 			else
 				args.Player.SendErrorMessage("Error reading config. Check log for details.");
 			return;
 		}
+		#endregion
 
+		class Config
+		{
+			// Variables to be added to WorldRefillConfig.json | Moved default chest IDs here so that people can edit them
+			#region DefaultChestIDs
+			public int[] DefaultChestIDs = new[]
+			{
+				168,
+				20,
+				22,
+				40,
+				42,
+				28,
+				292,
+				298,
+				299,
+				290,
+				8,
+				31,
+				72,
+				280,
+				284,
+				281,
+				282,
+				279,
+				285,
+				21,
+				289,
+				303,
+				291,
+				304,
+				49,
+				50,
+				52,
+				53,
+				54,
+				55,
+				51,
+				43,
+				167,
+				188,
+				295,
+				302,
+				305,
+				73,
+				301,
+				159,
+				65,
+				158,
+				117,
+				265,
+				294,
+				288,
+				297,
+				300,
+				218,
+				112,
+				220,
+				985,
+				267,
+				156
+			};
+			#endregion
+			public bool UseInfiniteChests = false;
+		}
+		#endregion
+
+		#region GenCrystals Command
 		private void DoCrystals(CommandArgs args)
 		{
 
@@ -195,18 +248,19 @@ namespace WorldRefill
 					trycount++;
 				}
 				//Notify user on success
-				args.Player.SendMessage(string.Format("Generated and hid {0} Life Crystals.", realcount), Color.Green);
+				args.Player.SendSuccessMessage("Generated and hid {0} Life Crystals.", realcount);
 
 				InformPlayers();
 			}
 			else
 			{
 				//notify user of command failure
-				args.Player.SendMessage(string.Format("Usage: /gencrystals (number of crystals to generate)"), Color.Green);
+				args.Player.SendInfoMessage("Usage: /gencrystals (number of crystals to generate)");
 			}
 
 		}
-
+		#endregion
+		#region GenPots Command
 		private void DoPots(CommandArgs args)
 		{
 			if (args.Parameters.Count == 1)
@@ -230,15 +284,16 @@ namespace WorldRefill
 					trycount++;
 
 				}
-				args.Player.SendMessage(string.Format("Generated and hid {0} Pots.", realcount), Color.Green);
+				args.Player.SendSuccessMessage("Generated and hid {0} Pots.", realcount);
 				InformPlayers();
 			}
 			else
 			{
-				args.Player.SendMessage(string.Format("Usage: /genpots (number of pots to generate)"), Color.Green);
+				args.Player.SendInfoMessage("Usage: /genpots (number of pots to generate)");
 			}
 		}
-
+		#endregion
+		#region GenOrbs Command
 		private void DoOrbs(CommandArgs args)
 		{
 			if (args.Parameters.Count == 1)
@@ -267,13 +322,15 @@ namespace WorldRefill
 					trycount++;
 				}
 				InformPlayers();
-				args.Player.SendMessage(string.Format("Generated and hid {0} Orbs.", realcount), Color.Green);
+				args.Player.SendSuccessMessage("Generated and hid {0} Orbs.", realcount);
 			}
 			else
 			{
-				args.Player.SendMessage(string.Format("Usage: /genorbs (number of orbs to generate)"), Color.Green);
+				args.Player.SendInfoMessage("Usage: /genorbs (number of orbs to generate)");
 			}
 		}
+		#endregion
+		#region GenAltars Command
 		private void DoAltars(CommandArgs args)
 		{
 			if (args.Parameters.Count == 1)
@@ -300,18 +357,20 @@ namespace WorldRefill
 					trycount++;
 				}
 				InformPlayers();
-				args.Player.SendMessage(string.Format("Generated and hid {0} Demon Altars.", realcount), Color.Green);
+				args.Player.SendSuccessMessage("Generated and hid {0} Demon Altars.", realcount);
 			}
 			else
 			{
-				args.Player.SendMessage(string.Format("Usage: /genaltars (number of Demon Altars to generate)"), Color.Green);
+				args.Player.SendInfoMessage("Usage: /genaltars (number of Demon Altars to generate)");
 			}
 		}
+		#endregion
+		#region GenTraps Command
 		private void DoTraps(CommandArgs args)
 		{
 			if (args.Parameters.Count == 1)
 			{
-				args.Player.SendMessage("Generating traps.. this may take a while..", Color.Green);
+				args.Player.SendInfoMessage("Generating traps.. this may take a while..");
 				var mTrap = Int32.Parse(args.Parameters[0]);
 				var surface = Main.worldSurface;
 				var trycount = 0;
@@ -333,18 +392,20 @@ namespace WorldRefill
 					trycount++;
 				}
 				InformPlayers();
-				args.Player.SendMessage(string.Format("Generated and hid {0} traps.", realcount), Color.Green);
+				args.Player.SendSuccessMessage("Generated and hid {0} traps.", realcount);
 			}
 			else
 			{
-				args.Player.SendMessage(string.Format("Usage: /gentraps (number of Traps to generate)"), Color.Green);
+				args.Player.SendInfoMessage("Usage: /gentraps (number of Traps to generate)");
 			}
 		}
+		#endregion
+		#region GenStatues Command
 		private void DoStatues(CommandArgs args)
 		{
 			if (args.Parameters.Count == 1)
 			{
-				args.Player.SendMessage("Generating statues.. this may take a while..", Color.Green);
+				args.Player.SendInfoMessage("Generating statues.. this may take a while..");
 				var mStatue = Int32.Parse(args.Parameters[0]);
 				var surface = Main.worldSurface;
 				var trycount = 0;
@@ -376,11 +437,12 @@ namespace WorldRefill
 					}
 					trycount++;
 				}
-				args.Player.SendMessage(string.Format("Generated and hid {0} Statues.", realcount), Color.Green);
+				args.Player.SendSuccessMessage("Generated and hid {0} Statues.", realcount);
 				InformPlayers();
 			}
 			else if (args.Parameters.Count == 2)
 			{
+				#region types
 				List<string> types = new List<string>
                                          {
                                              "Armor",
@@ -431,6 +493,7 @@ namespace WorldRefill
 											 "Lihzahrd Guardian",
                                              "Ukown"
                                          };
+				#endregion
 
 				string mReqs = args.Parameters[1].ToLower();
 				var mStatue = Int32.Parse(args.Parameters[0]);
@@ -452,7 +515,7 @@ namespace WorldRefill
 				if (stid < 44)
 				{
 
-					args.Player.SendMessage(string.Format("Generating {0} statues.. this may take a while..", found), Color.Green);
+					args.Player.SendInfoMessage("Generating {0} statues.. this may take a while..", found);
 					while (trycount < maxtries)
 					{
 						var tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
@@ -478,20 +541,21 @@ namespace WorldRefill
 						}
 						trycount++;
 					}
-					args.Player.SendMessage(string.Format("Generated and hid {0} {1} ({2})Statues.", realcount, found, stid), Color.Green);
+					args.Player.SendSuccessMessage("Generated and hid {0} {1} ({2})Statues.", realcount, found, stid);
 					InformPlayers();
 				}
 				else
 				{
-					args.Player.SendMessage(string.Format("Couldn't find a match for {0}.", mReqs), Color.Green);
+					args.Player.SendErrorMessage("Couldn't find a match for {0}.", mReqs);
 				}
 			}
 			else
 			{
-				args.Player.SendMessage(string.Format("Usage: /genstatues (number of statues to generate) [(optional)name of statue]"), Color.Green);
+				args.Player.SendInfoMessage("Usage: /genstatues (number of statues to generate) [(optional)name of statue]");
 			}
 		}
-
+		#endregion
+		#region GenOres Command
 		private static void DoOres(CommandArgs args)
 		{
 			if (WorldGen.genRand == null)
@@ -523,118 +587,130 @@ namespace WorldRefill
 
 			if (args.Parameters.Count < 1)
 			{
-				ply.SendMessage("Usage: /genores (type) (amount)", Color.Red);    //should this be a help message instead?
+				ply.SendInfoMessage("Usage: /genores (type) (amount)");
 				return;
 			}
 			else if (args.Parameters[0].ToLower() == "cobalt")
 			{
-				oreType = 107;
+				oreType = Terraria.ID.TileID.Cobalt;
 			}
 			else if (args.Parameters[0].ToLower() == "mythril")
 			{
-				oreType = 108;
+				oreType = Terraria.ID.TileID.Mythril;
 			}
 			else if (args.Parameters[0].ToLower() == "copper")
 			{
-				oreType = 7;
+				oreType = Terraria.ID.TileID.Copper;
 			}
 			else if (args.Parameters[0].ToLower() == "iron")
 			{
-				oreType = 6;
+				oreType = Terraria.ID.TileID.Iron;
 			}
 			else if (args.Parameters[0].ToLower() == "silver")
 			{
-				oreType = 9;
+				oreType = Terraria.ID.TileID.Silver;
 			}
 			else if (args.Parameters[0].ToLower() == "gold")
 			{
-				oreType = 8;
+				oreType = Terraria.ID.TileID.Gold;
 			}
 			else if (args.Parameters[0].ToLower() == "demonite")
 			{
-				oreType = 22;
+				oreType = Terraria.ID.TileID.Demonite;
 			}
 			else if (args.Parameters[0].ToLower() == "sapphire")
 			{
-				oreType = 63;
+				oreType = Terraria.ID.TileID.Sapphire;
 			}
 			else if (args.Parameters[0].ToLower() == "ruby")
 			{
-				oreType = 64;
+				oreType = Terraria.ID.TileID.Ruby;
 			}
 			else if (args.Parameters[0].ToLower() == "emerald")
 			{
-				oreType = 65;
+				oreType = Terraria.ID.TileID.Emerald;
 			}
 			else if (args.Parameters[0].ToLower() == "topaz")
 			{
-				oreType = 66;
+				oreType = Terraria.ID.TileID.Topaz;
 			}
 			else if (args.Parameters[0].ToLower() == "amethyst")
 			{
-				oreType = 67;
+				oreType = Terraria.ID.TileID.Amethyst;
 			}
 			else if (args.Parameters[0].ToLower() == "diamond")
 			{
-				oreType = 68;
+				oreType = Terraria.ID.TileID.Diamond;
 			}
 			else if (args.Parameters[0].ToLower() == "adamantite")
 			{
-				oreType = 111;
+				oreType = Terraria.ID.TileID.Adamantite;
 			}
 			else if (args.Parameters[0].ToLower() == "hellstone")
 			{
-				oreType = 58;
+				oreType = Terraria.ID.TileID.Hellstone;
 			}
 
 			// New Ores
 			else if (args.Parameters[0].ToLower() == "tin")
 			{
-				oreType = 166;
+				oreType = Terraria.ID.TileID.Tin;
 			}
 			else if (args.Parameters[0].ToLower() == "lead")
 			{
-				oreType = 167;
+				oreType = Terraria.ID.TileID.Lead;
 			}
 			else if (args.Parameters[0].ToLower() == "tungsten")
 			{
-				oreType = 168;
+				oreType = Terraria.ID.TileID.Tungsten;
 			}
 			else if (args.Parameters[0].ToLower() == "platinum")
 			{
-				oreType = 169;
+				oreType = Terraria.ID.TileID.Platinum;
 			}
-			else if (args.Parameters[0].ToLower() == "crimtane") //NEW
+			else if (args.Parameters[0].ToLower() == "crimtane")
 			{
-				oreType = 204;
+				oreType = Terraria.ID.TileID.Crimtane;
 			}
 
 			// 1.2 Hardmode Ores
 			else if (args.Parameters[0].ToLower() == "palladium")
 			{
-				oreType = 221;
+				oreType = Terraria.ID.TileID.Palladium;
 			}
 			else if (args.Parameters[0].ToLower() == "orichalcum")
 			{
-				oreType = 222;
+				oreType = Terraria.ID.TileID.Orichalcum;
 			}
 			else if (args.Parameters[0].ToLower() == "titanium")
 			{
-				oreType = 223;
+				oreType = Terraria.ID.TileID.Titanium;
 			}
-			else if (args.Parameters[0].ToLower() == "chlorophyte") //NEW
+			else if (args.Parameters[0].ToLower() == "chlorophyte")
 			{
-				oreType = 211;
+				oreType = Terraria.ID.TileID.Chlorophyte;
 			}
 
 			// Others
-			else if (args.Parameters[0].ToLower() == "silt") //NEW
+			else if (args.Parameters[0].ToLower() == "dirt")
 			{
-				oreType = 123;
+				oreType = Terraria.ID.TileID.Dirt;
+			}
+			else if (args.Parameters[0].ToLower() == "stone")
+			{
+				oreType = Terraria.ID.TileID.Stone;
+			}
+			else if (args.Parameters[0].ToLower() == "sand")
+			{
+				oreType = Terraria.ID.TileID.Sand;
+			}
+			else if (args.Parameters[0].ToLower() == "silt")
+			{
+				oreType = Terraria.ID.TileID.Silt;
 			}
 			else
 			{
-				ply.SendMessage("Warning! Typo in Tile name or Tile does not exist", Color.Red);    //should this be a help message instead?
+				ply.SendErrorMessage("Warning! Typo in Tile name or Tile does not exist");
 				return;
 			}
 
@@ -656,7 +732,12 @@ namespace WorldRefill
 				int i2 = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
 				double worldY = Main.worldSurface;
 				//Rare Ores  - Adamantite (Titanium), Demonite, Diamond, Chlorophyte
-				if ((oreType == 111) || (oreType == 22) || (oreType == 204) || (oreType == 211) || (oreType == 223) || (oreType >= 63) && (oreType <= 68))
+				if ((oreType == Terraria.ID.TileID.Adamantite) ||
+					(oreType == Terraria.ID.TileID.Demonite) ||
+					(oreType == Terraria.ID.TileID.Crimtane) ||
+					(oreType == Terraria.ID.TileID.Chlorophyte) ||
+					(oreType == Terraria.ID.TileID.Titanium) ||
+					((oreType >= Terraria.ID.TileID.Sapphire) && (oreType <= Terraria.ID.TileID.Diamond)))
 				{
 					//Some formula created by k0rd for getting somewhere between hell and roughly half way after rock
 					worldY = (Main.rockLayer + Main.rockLayer + (double)Main.maxTilesY) / 3.0;
@@ -666,7 +747,7 @@ namespace WorldRefill
 					maxSpread = 3;
 				}
 				//Hellstone Only
-				else if (oreType == 58)
+				else if (oreType == Terraria.ID.TileID.Hellstone)
 				{
 					//roughly where hell is
 					worldY = Main.maxTilesY - 200;
@@ -688,9 +769,11 @@ namespace WorldRefill
 				WorldGen.OreRunner(i2, j2, (double)WorldGen.genRand.Next(minSpread, maxSpread), WorldGen.genRand.Next(minFrequency, maxFrequency), oreType);
 				oreGened++;
 			}
-			ply.SendMessage(String.Format("Spawned {0} tiles of {1}", Math.Floor(oreAmts), args.Parameters[0].ToLower()), Color.Green);
+			ply.SendSuccessMessage("Spawned {0} tiles of {1}", Math.Floor(oreAmts), args.Parameters[0].ToLower());
 			InformPlayers();
 		}
+		#endregion
+		#region GenWebs Command
 		private void DoWebs(CommandArgs args)
 		{
 			if (args.Parameters.Count == 1)
@@ -736,15 +819,16 @@ namespace WorldRefill
 					trycount++;
 
 				}
-				args.Player.SendMessage(string.Format("Generated and hid {0} Webs.", realcount), Color.Green);
+				args.Player.SendSuccessMessage("Generated and hid {0} Webs.", realcount);
 				InformPlayers();
 			}
 			else
 			{
-				args.Player.SendMessage(string.Format("Usage: /genwebs (number of webs to generate)"), Color.Green);
+				args.Player.SendInfoMessage("Usage: /genwebs (number of webs to generate)");
 			}
 		}
-
+		#endregion
+		#region GenTrees Command
 		private void DoTrees(CommandArgs args)
 		{
 			var counter = 0;
@@ -764,9 +848,11 @@ namespace WorldRefill
 				counter++;
 			}
 			WorldGen.AddTrees();
-			args.Player.SendMessage("Enjoy your trees.", Color.Green);
+			args.Player.SendSuccessMessage("Enjoy your trees.");
 			InformPlayers();
 		}
+		#endregion
+		#region GenShrooms Command
 		private void DoShrooms(CommandArgs args)
 		{
 			int tryX = args.Player.TileX;
@@ -786,9 +872,11 @@ namespace WorldRefill
 			}
 
 			InformPlayers();
-			args.Player.SendMessage("Mushroom Farm generated.", Color.Green);
+			args.Player.SendSuccessMessage("Mushroom Farm generated.");
 		}
+		#endregion
 
+		#region GenPyramid Command
 		private void DoPyramid(CommandArgs args)
 		{
 			int tryX = args.Player.TileX;
@@ -799,14 +887,15 @@ namespace WorldRefill
 			if (resulta)
 			{
 				InformPlayers();
-				args.Player.SendMessage("A pyramid was created.", Color.Green);
+				args.Player.SendSuccessMessage("A pyramid was created.");
 			}
 			else
 			{
-				args.Player.SendMessage("A pyramid cannot be created here.", Color.Red);
+				args.Player.SendErrorMessage("A pyramid cannot be created here.");
 			}
 		}
-
+		#endregion
+		#region Hellevator Command
 		private void DoHV(CommandArgs args)
 		{
 			int meX = args.Player.TileX;
@@ -942,27 +1031,31 @@ namespace WorldRefill
 				}
 			}
 
-
 			InformPlayers();
-			args.Player.SendMessage("Going down?", Color.Green);
+			args.Player.SendSuccessMessage("Going down?");
 		}
+		#endregion
+		#region GenMineHouse Command
 		private void DoMineHouse(CommandArgs args)
 		{
 			int tryX = args.Player.TileX;
 			int tryY = args.Player.TileY;
 			WorldGen.MineHouse(tryX, tryY + 1);
-			args.Player.SendMessage("Attempted to generate a Mine House here.", Color.Green);
+			args.Player.SendSuccessMessage("Attempted to generate a Mine House here.");
 			InformPlayers();
 		}
+		#endregion
+		#region GenIslandHouse Command
 		private void DoIslandHouse(CommandArgs args)
 		{
 			int tryX = args.Player.TileX;
 			int tryY = args.Player.TileY;
 			WorldGen.IslandHouse(tryX, tryY + 1);
-			args.Player.SendMessage("Attempted to generate an Island House here.", Color.Green);
+			args.Player.SendSuccessMessage("Attempted to generate an Island House here.");
 			InformPlayers();
 		}
-
+		#endregion
+		#region GenFloatingIsland Command
 		private void DoIsland(CommandArgs args)
 		{
 			int tryX = args.Player.TileX;
@@ -970,10 +1063,11 @@ namespace WorldRefill
 			if (tryY <= 50)
 				tryY = 51;
 			WorldGen.CloudIsland(tryX, tryY - 50);
-			args.Player.SendMessage("Attempted to generate a floating island above you.", Color.Green);
+			args.Player.SendSuccessMessage("Attempted to generate a floating island above you.");
 			InformPlayers();
 		}
-
+		#endregion
+		#region GenCloudIsland Command
 		private void DoCloudIsland(CommandArgs args)
 		{
 			int tryX = args.Player.TileX;
@@ -981,10 +1075,11 @@ namespace WorldRefill
 			WorldGen.CloudIsland(tryX, tryY + 9);
 			WorldGen.IslandHouse(tryX, tryY + 1);
 
-			args.Player.SendMessage("Attempted to generate an un-looted floating island at your position.", Color.Green);
+			args.Player.SendSuccessMessage("Attempted to generate an un-looted floating island at your position.");
 			InformPlayers();
 		}
-
+		#endregion
+		#region GenLivingTree Command (TODO)
 		// Needs revision, does not work for some reason
 		private void DoLivingTree(CommandArgs args)
 		{
@@ -992,15 +1087,17 @@ namespace WorldRefill
 			int tryY = args.Player.TileY;
 			WorldGen.GrowLivingTree(tryX, tryY);
 
-			args.Player.SendMessage("Attempted to grow a living tree at your position.", Color.Green);
+			args.Player.SendSuccessMessage("Attempted to grow a living tree at your position.");
 			InformPlayers();
 		}
+		#endregion
 
-		private void CountEmpties(CommandArgs args)
+		#region GenChests Command
+		private void DoChests(CommandArgs args)
 		{
 			if (args.Parameters.Count == 0 || args.Parameters.Count > 2)
 			{
-				args.Player.SendMessage("Usage: /genchests <amount> [gen mode: default/easy/all]", Color.Green);
+				args.Player.SendInfoMessage("Usage: /genchests <amount> [gen mode: default/easy/all]");
 			}
 			int empty = 0;
 			int tmpEmpty = 0;
@@ -1041,7 +1138,7 @@ namespace WorldRefill
 					}
 
 				}
-				args.Player.SendMessage(string.Format("uprooted {0} empty out of {1} chests.", empty, tmpEmpty), Color.Green);
+				args.Player.SendSuccessMessage("Uprooted {0} empty out of {1} chests.", empty, tmpEmpty);
 			}
 			else
 			{
@@ -1088,12 +1185,12 @@ namespace WorldRefill
 					{
 						// Moved item list into a separate .txt file
 						int[] itemID = config.DefaultChestIDs;
-						contain = itemID[WorldGen.genRand.Next(0, itemID.GetUpperBound(0))];
+						contain = itemID[WorldGen.genRand.Next(0, itemID.Length)];
 					}
 					else if (setting == "all")
 					{
 						// Updated item list to 1.2.4.1
-						contain = WorldGen.genRand.Next(ItemList[0], ItemList.Count - 47);
+						contain = WorldGen.genRand.Next(ItemList[0], ItemList.Last() + 1);
 					}
 					else if (setting == "easy")
 					{
@@ -1101,7 +1198,7 @@ namespace WorldRefill
 					}
 					else
 					{
-						args.Player.SendMessage(string.Format("Warning! Typo in second argument: {0}", args.Parameters[1]), Color.Red);
+						args.Player.SendWarningMessage("Warning! Typo in second argument: {0}", args.Parameters[1]);
 						return;
 					}
 					int tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
@@ -1157,10 +1254,36 @@ namespace WorldRefill
 				}
 				if (config.UseInfiniteChests)
 					ChestDB.Dispose();
-				args.Player.SendMessage(string.Format("generated {0} new chests - {1} total", newcount, chestcount), Color.Green);
+				args.Player.SendSuccessMessage("Generated {0} new chests - {1} total", newcount, chestcount);
 				InformPlayers();
 			}
 		}
+		#endregion
+
+		#region Utils
+		#region InformPlayers
+		//Updating all players
+		public static void InformPlayers(bool hard = false)
+		{
+			foreach (TSPlayer person in TShock.Players)
+			{
+				if ((person != null) && (person.Active))
+				{
+					for (int i = 0; i < 255; i++)
+					{
+						for (int j = 0; j < Main.maxSectionsX; j++)
+						{
+							for (int k = 0; k < Main.maxSectionsY; k++)
+							{
+								Netplay.serverSock[i].tileSection[j, k] = false;
+							}
+						}
+					}
+				}
+			}
+
+		}
+		#endregion
 
 		private List<int> ItemList
 		{
@@ -1172,8 +1295,10 @@ namespace WorldRefill
 				{
 					list.Add((int)items[i].GetValue(items[i]));
 				}
+				list.Sort();
 				return list;
 			}
 		}
+		#endregion
 	}
 }
