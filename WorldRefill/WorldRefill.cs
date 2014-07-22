@@ -69,7 +69,7 @@ namespace WorldRefill
 		#region Plugin Info
 		public override Version Version
 		{
-			get { return new Version(1, 7, 3); }
+			get { return new Version(1, 7, 4); }
 		}
 		public override string Name
 		{
@@ -219,6 +219,7 @@ namespace WorldRefill
 			};
 			#endregion
 			public bool UseInfiniteChests = false;
+			public bool GenInsideProtectedRegions = false;
 		}
 		#endregion
 
@@ -1203,6 +1204,8 @@ namespace WorldRefill
 					}
 					int tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
 					int tryY = WorldGen.genRand.Next((int)Main.worldSurface, Main.maxTilesY - 200);
+					if (!config.GenInsideProtectedRegions && IsProtected(tryX, tryY))
+						continue;
 					while (!Main.tile[tryX, tryY].active())
 					{
 						tryY++;
@@ -1282,6 +1285,18 @@ namespace WorldRefill
 				}
 			}
 
+		}
+		#endregion
+		#region IsProtected
+		bool IsProtected(int x, int y)
+		{
+			var regions = TShock.Regions.InAreaRegion(x, y);
+			foreach (var region in regions)
+			{
+				if (region.DisableBuild)
+					return true;
+			}
+			return false;
 		}
 		#endregion
 
