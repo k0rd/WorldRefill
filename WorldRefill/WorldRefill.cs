@@ -69,7 +69,7 @@ namespace WorldRefill
 		#region Plugin Info
 		public override Version Version
 		{
-			get { return new Version(1, 7, 4); }
+			get { return new Version(1, 7, 5); }
 		}
 		public override string Name
 		{
@@ -496,7 +496,7 @@ namespace WorldRefill
                                          };
 				#endregion
 
-				string mReqs = args.Parameters[1].ToLower();
+				string mReqs = args.Parameters[1].ToLowerInvariant();
 				var mStatue = Int32.Parse(args.Parameters[0]);
 				var surface = Main.worldSurface;
 				var trycount = 0;
@@ -506,7 +506,7 @@ namespace WorldRefill
 				string found = "unknown type!";
 				foreach (string ment in types)
 				{
-					found = ment.ToLower();
+					found = ment.ToLowerInvariant();
 					if (found.StartsWith(mReqs))
 					{
 						break;
@@ -591,121 +591,125 @@ namespace WorldRefill
 				ply.SendInfoMessage("Usage: /genores (type) (amount)");
 				return;
 			}
-			else if (args.Parameters[0].ToLower() == "cobalt")
+			else if (args.Parameters[0].ToLowerInvariant() == "cobalt")
 			{
 				oreType = Terraria.ID.TileID.Cobalt;
 			}
-			else if (args.Parameters[0].ToLower() == "mythril")
+			else if (args.Parameters[0].ToLowerInvariant() == "mythril")
 			{
 				oreType = Terraria.ID.TileID.Mythril;
 			}
-			else if (args.Parameters[0].ToLower() == "copper")
+			else if (args.Parameters[0].ToLowerInvariant() == "copper")
 			{
 				oreType = Terraria.ID.TileID.Copper;
 			}
-			else if (args.Parameters[0].ToLower() == "iron")
+			else if (args.Parameters[0].ToLowerInvariant() == "iron")
 			{
 				oreType = Terraria.ID.TileID.Iron;
 			}
-			else if (args.Parameters[0].ToLower() == "silver")
+			else if (args.Parameters[0].ToLowerInvariant() == "silver")
 			{
 				oreType = Terraria.ID.TileID.Silver;
 			}
-			else if (args.Parameters[0].ToLower() == "gold")
+			else if (args.Parameters[0].ToLowerInvariant() == "gold")
 			{
 				oreType = Terraria.ID.TileID.Gold;
 			}
-			else if (args.Parameters[0].ToLower() == "demonite")
+			else if (args.Parameters[0].ToLowerInvariant() == "demonite")
 			{
 				oreType = Terraria.ID.TileID.Demonite;
 			}
-			else if (args.Parameters[0].ToLower() == "sapphire")
+			else if (args.Parameters[0].ToLowerInvariant() == "sapphire")
 			{
 				oreType = Terraria.ID.TileID.Sapphire;
 			}
-			else if (args.Parameters[0].ToLower() == "ruby")
+			else if (args.Parameters[0].ToLowerInvariant() == "ruby")
 			{
 				oreType = Terraria.ID.TileID.Ruby;
 			}
-			else if (args.Parameters[0].ToLower() == "emerald")
+			else if (args.Parameters[0].ToLowerInvariant() == "emerald")
 			{
 				oreType = Terraria.ID.TileID.Emerald;
 			}
-			else if (args.Parameters[0].ToLower() == "topaz")
+			else if (args.Parameters[0].ToLowerInvariant() == "topaz")
 			{
 				oreType = Terraria.ID.TileID.Topaz;
 			}
-			else if (args.Parameters[0].ToLower() == "amethyst")
+			else if (args.Parameters[0].ToLowerInvariant() == "amethyst")
 			{
 				oreType = Terraria.ID.TileID.Amethyst;
 			}
-			else if (args.Parameters[0].ToLower() == "diamond")
+			else if (args.Parameters[0].ToLowerInvariant() == "diamond")
 			{
 				oreType = Terraria.ID.TileID.Diamond;
 			}
-			else if (args.Parameters[0].ToLower() == "adamantite")
+			else if (args.Parameters[0].ToLowerInvariant() == "adamantite")
 			{
 				oreType = Terraria.ID.TileID.Adamantite;
 			}
-			else if (args.Parameters[0].ToLower() == "hellstone")
+			else if (args.Parameters[0].ToLowerInvariant() == "hellstone")
 			{
 				oreType = Terraria.ID.TileID.Hellstone;
 			}
+			else if (args.Parameters[0].ToLowerInvariant() == "meteorite")
+			{
+				oreType = Terraria.ID.TileID.Meteorite;
+			}
 
 			// New Ores
-			else if (args.Parameters[0].ToLower() == "tin")
+			else if (args.Parameters[0].ToLowerInvariant() == "tin")
 			{
 				oreType = Terraria.ID.TileID.Tin;
 			}
-			else if (args.Parameters[0].ToLower() == "lead")
+			else if (args.Parameters[0].ToLowerInvariant() == "lead")
 			{
 				oreType = Terraria.ID.TileID.Lead;
 			}
-			else if (args.Parameters[0].ToLower() == "tungsten")
+			else if (args.Parameters[0].ToLowerInvariant() == "tungsten")
 			{
 				oreType = Terraria.ID.TileID.Tungsten;
 			}
-			else if (args.Parameters[0].ToLower() == "platinum")
+			else if (args.Parameters[0].ToLowerInvariant() == "platinum")
 			{
 				oreType = Terraria.ID.TileID.Platinum;
 			}
-			else if (args.Parameters[0].ToLower() == "crimtane")
+			else if (args.Parameters[0].ToLowerInvariant() == "crimtane")
 			{
 				oreType = Terraria.ID.TileID.Crimtane;
 			}
 
 			// 1.2 Hardmode Ores
-			else if (args.Parameters[0].ToLower() == "palladium")
+			else if (args.Parameters[0].ToLowerInvariant() == "palladium")
 			{
 				oreType = Terraria.ID.TileID.Palladium;
 			}
-			else if (args.Parameters[0].ToLower() == "orichalcum")
+			else if (args.Parameters[0].ToLowerInvariant() == "orichalcum")
 			{
 				oreType = Terraria.ID.TileID.Orichalcum;
 			}
-			else if (args.Parameters[0].ToLower() == "titanium")
+			else if (args.Parameters[0].ToLowerInvariant() == "titanium")
 			{
 				oreType = Terraria.ID.TileID.Titanium;
 			}
-			else if (args.Parameters[0].ToLower() == "chlorophyte")
+			else if (args.Parameters[0].ToLowerInvariant() == "chlorophyte")
 			{
 				oreType = Terraria.ID.TileID.Chlorophyte;
 			}
 
 			// Others
-			else if (args.Parameters[0].ToLower() == "dirt")
+			else if (args.Parameters[0].ToLowerInvariant() == "dirt")
 			{
 				oreType = Terraria.ID.TileID.Dirt;
 			}
-			else if (args.Parameters[0].ToLower() == "stone")
+			else if (args.Parameters[0].ToLowerInvariant() == "stone")
 			{
 				oreType = Terraria.ID.TileID.Stone;
 			}
-			else if (args.Parameters[0].ToLower() == "sand")
+			else if (args.Parameters[0].ToLowerInvariant() == "sand")
 			{
 				oreType = Terraria.ID.TileID.Sand;
 			}
-			else if (args.Parameters[0].ToLower() == "silt")
+			else if (args.Parameters[0].ToLowerInvariant() == "silt")
 			{
 				oreType = Terraria.ID.TileID.Silt;
 			}
@@ -770,7 +774,7 @@ namespace WorldRefill
 				WorldGen.OreRunner(i2, j2, (double)WorldGen.genRand.Next(minSpread, maxSpread), WorldGen.genRand.Next(minFrequency, maxFrequency), oreType);
 				oreGened++;
 			}
-			ply.SendSuccessMessage("Spawned {0} tiles of {1}", Math.Floor(oreAmts), args.Parameters[0].ToLower());
+			ply.SendSuccessMessage("Spawned {0} tiles of {1}", Math.Floor(oreAmts), args.Parameters[0].ToLowerInvariant());
 			InformPlayers();
 		}
 		#endregion
@@ -1146,7 +1150,7 @@ namespace WorldRefill
 
 				try
 				{
-					switch (TShock.Config.StorageType.ToLower())
+					switch (TShock.Config.StorageType.ToLowerInvariant())
 					{
 						case "mysql":
 							string[] host = TShock.Config.MySqlHost.Split(':');
