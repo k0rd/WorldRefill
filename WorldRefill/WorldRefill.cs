@@ -14,7 +14,7 @@ using TShockAPI.DB;
 
 namespace WorldRefill
 {
-	[ApiVersion(1, 16)]
+	[ApiVersion(1, 17)]
 	public class WorldRefill : TerrariaPlugin
 	{
 		public WorldRefill(Main game)
@@ -106,7 +106,7 @@ namespace WorldRefill
 			}
 			catch (Exception ex)
 			{
-				Log.ConsoleError(ex.Message);
+				TShock.Log.ConsoleError(ex.Message);
 				config = new Config();
 			}
 		}
@@ -132,14 +132,14 @@ namespace WorldRefill
 				}
 				else
 				{
-					Log.ConsoleError("WorldRefill config not found. Creating new one...");
+					TShock.Log.ConsoleError("WorldRefill config not found. Creating new one...");
 					CreateConfig();
 					return false;
 				}
 			}
 			catch (Exception ex)
 			{
-				Log.ConsoleError(ex.Message);
+				TShock.Log.ConsoleError(ex.Message);
 			}
 			return false;
 		}
@@ -1172,7 +1172,7 @@ namespace WorldRefill
 				}
 				catch (Exception ex)
 				{
-					Log.ConsoleError(ex.ToString());
+					TShock.Log.ConsoleError(ex.ToString());
 				}
 			}
 			if (chests + tmpEmpty + threshold > maxChests)
@@ -1246,7 +1246,7 @@ namespace WorldRefill
 								}
 								catch (Exception ex)
 								{
-									Log.ConsoleError(ex.ToString());
+									TShock.Log.ConsoleError(ex.ToString());
 								}
 								items.Clear();
 								Main.chest[0] = null;
