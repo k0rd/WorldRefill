@@ -1,57 +1,82 @@
 ﻿using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
+using OTAPI;
+using OTAPI.Tile;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Terraria;
+using Terraria.GameContent.Generation;
+using Terraria.GameContent.UI.States;
+using Terraria.UI;
 using TerrariaApi.Server;
 using TShockAPI;
 using TShockAPI.DB;
+using TShockAPI.Hooks;
 
 namespace WorldRefill
 {
-	[ApiVersion(1, 17)]
+	[ApiVersion(2, 1)]
 	public class WorldRefill : TerrariaPlugin
 	{
 		public WorldRefill(Main game)
 			: base(game)
 		{
+			Order = +2;
 		}
+		#region Plugin Info
+		public override Version Version
+		{
+			get { return new Version(2, 0, 0); }
+		}
+		public override string Name
+		{
+			get { return "World Refill"; }
+		}
+		public override string Author
+		{
+			get { return "k0rd, IcyPhoenix and Enerdy (Updated by Matheis)"; }
+		}
+		public override string Description
+		{
+			get { return "Refill your world!"; }
+		}
+		#endregion
+
 		private static string savepath = TShock.SavePath;
 		private static Config config;
 		private IDbConnection ChestDB;
+		
 
 		#region Initialize
 		public override void Initialize()
 		{
 			#region Gen Commands
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoCrystals, "gencrystals"));		//Life Crystals
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoPots, "genpots"));				//Pots
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoOrbs, "genorbs"));				//Orbs
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoAltars, "genaltars"));			//Demon Altars
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoTraps, "gentraps"));			//Traps
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoStatues, "genstatues"));		//Statues
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoOres, "genores"));				//ores
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoWebs, "genwebs"));				//webs
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoMineHouse, "genhouse"));		//mine house
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoTrees, "gentrees"));			//trees
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoIsland, "genisland"));			//floating island
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoShrooms, "genpatch"));			//mushroom patch
+			Commands.ChatCommands.Add(new Command("worldrefill.generate", Generate, "generate", "gen")
+			{
+				AllowServer = false
+			}); 
+
+			
+			#region Commands to Add
+			//Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoLivingTree, "genltree"));		// Added on v1.7.1 (Not working)
 			//Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoLake, "genlake"));			//lake
 			//Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoMountain, "genmountain"));	//mountain
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoChests, "genchests"));		//chests
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoIslandHouse, "genihouse"));		//island house
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoHV, "hellevator"));				//hellevator
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoPyramid, "genpyramid"));		//pyramid
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoCloudIsland, "gencisland"));	//cloud island + house
-			//Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoLivingTree, "genltree"));		// Added on v1.7.1 (Not working)
+			// Desert Island 
+			// Cloud Island 
+			// Any other additions to 1.4
 			#endregion
-			Commands.ChatCommands.Add(new Command("tshock.world.causeevents", ConfigReload, "refillreload"));
+			#endregion
+			
 			ReadConfig();
+
+			GeneralHooks.ReloadEvent += OnReload;
 		}
 		#endregion
 
@@ -60,30 +85,13 @@ namespace WorldRefill
 		{
 			if (disposing)
 			{
-
+				GeneralHooks.ReloadEvent -= OnReload;
 			}
 			base.Dispose(disposing);
 		}
 		#endregion
 
-		#region Plugin Info
-		public override Version Version
-		{
-			get { return new Version(1, 7, 5); }
-		}
-		public override string Name
-		{
-			get { return "World Refill Plugin"; }
-		}
-		public override string Author
-		{
-			get { return "k0rd, IcyPhoenix and Enerdy"; }
-		}
-		public override string Description
-		{
-			get { return "Refill your world!"; }
-		}
-		#endregion
+
 
 		#region Config
 		// Config Code stolen from InanZed's DieMob
@@ -132,7 +140,7 @@ namespace WorldRefill
 				}
 				else
 				{
-					TShock.Log.ConsoleError("WorldRefill config not found. Creating new one...");
+					TShock.Log.ConsoleError("World Refill config not found. Creating new one...");
 					CreateConfig();
 					return false;
 				}
@@ -146,12 +154,13 @@ namespace WorldRefill
 		#endregion
 		#region Reload Command
 		// Config Reload
-		private void ConfigReload(CommandArgs args)
+		private void OnReload(ReloadEventArgs args)
 		{
 			if (ReadConfig())
-				args.Player.SendSuccessMessage("WorldEdit config reloaded.");
+				args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] {Name} config reloaded.");
+
 			else
-				args.Player.SendErrorMessage("Error reading config. Check log for details.");
+				args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Error reading config. Check log for details.");
 			return;
 		}
 		#endregion
@@ -220,187 +229,496 @@ namespace WorldRefill
 			#endregion
 			public bool UseInfiniteChests = false;
 			public bool GenInsideProtectedRegions = false;
+
+			public int GenerationMaxTries = 1000000; // Setting this value higher may result in more lag when generating as this is the maximum amount of tries it will take to generate a structure.
 		}
 		#endregion
-
-		#region GenCrystals Command
-		private void DoCrystals(CommandArgs args)
+		#region Case Options
+		
+		private void PrintOptions(CommandArgs args)
 		{
-
-			if (args.Parameters.Count == 1)
-			{
-				var mCry = Int32.Parse(args.Parameters[0]);
-				var surface = Main.worldSurface;
-				var trycount = 0;
-				//maxtries = retry amounts if generation of object fails
-				const int maxtries = 1000000;
-				//realcount = actual amount of objects generated
-				var realcount = 0;
-
-				//Attempting to generate Objects
-				while (trycount < maxtries)
-				{
-					if (WorldGen.AddLifeCrystal(WorldGen.genRand.Next(1, Main.maxTilesX), WorldGen.genRand.Next((int)(surface + 20.0), Main.maxTilesY)))
-					{
-						realcount++;
-						//Determine if enough Objects have been generated
-						if (realcount == mCry) break;
-					}
-					trycount++;
-				}
-				//Notify user on success
-				args.Player.SendSuccessMessage("Generated and hid {0} Life Crystals.", realcount);
-
-				InformPlayers();
-			}
-			else
-			{
-				//notify user of command failure
-				args.Player.SendInfoMessage("Usage: /gencrystals (number of crystals to generate)");
-			}
-
+			args.Player.SendErrorMessage("Crystals | Pots | Orbs | Altars | Cavetraps | Templetraps | Statuetraps | Lavatraps ");
 		}
-		#endregion
-		#region GenPots Command
-		private void DoPots(CommandArgs args)
+
+
+
+
+        #region Generate Command
+        private void Generate(CommandArgs args)
+
 		{
-			if (args.Parameters.Count == 1)
+			
+			if(args.Parameters.Count < 1)
 			{
-
-				var mPot = Int32.Parse(args.Parameters[0]);
-				var surface = Main.worldSurface;
-				var trycount = 0;
-				const int maxtries = 1000000;
-				var realcount = 0;
-				while (trycount < maxtries)
-				{
-					var tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
-					var tryY = WorldGen.genRand.Next((int)surface - 10, Main.maxTilesY);
-					if (WorldGen.PlacePot(tryX, tryY, 28))
-					{
-						realcount++;
-						if (realcount == mPot)
-							break;
-					}
-					trycount++;
-
-				}
-				args.Player.SendSuccessMessage("Generated and hid {0} Pots.", realcount);
-				InformPlayers();
+				args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! " +
+					$"Please refer to the following options...");
+				PrintOptions(args);
+				return;
 			}
-			else
+			switch (args.Parameters[0].ToLowerInvariant())
 			{
-				args.Player.SendInfoMessage("Usage: /genpots (number of pots to generate)");
-			}
-		}
-		#endregion
-		#region GenOrbs Command
-		private void DoOrbs(CommandArgs args)
-		{
-			if (args.Parameters.Count == 1)
-			{
+				#region Life Crystals
+				case "crystal":
+				case "crystals":
 
-				var mOrb = Int32.Parse(args.Parameters[0]);
-				var surface = Main.worldSurface;
-				var trycount = 0;
-				const int maxtries = 1000000;
-				var realcount = 0;
-				while (trycount < maxtries)
-				{
-					var tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
-					var tryY = WorldGen.genRand.Next((int)surface + 20, Main.maxTilesY);
-
-					if ((!Main.tile[tryX, tryY].active()) && ((Main.tile[tryX, tryY].wall == (byte)3) || (Main.tile[tryX, tryY].wall == (byte)83)))
+					if (args.Parameters.Count == 2)
 					{
-						WorldGen.AddShadowOrb(tryX, tryY);
-						if (Main.tile[tryX, tryY].type == 31)
+						if (!int.TryParse(args.Parameters[1], out _) || Int32.Parse(args.Parameters[1]) < 1)
 						{
-							realcount++;
-							if (realcount == mOrb)
-								break;
+							args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen crystals <Amount of Crystals>");
+							break;
+						}
+						else
+						{
+							int mCry = Int32.Parse(args.Parameters[1]);
+							var surface = Main.worldSurface;
+							var trycount = 0;
+							//maxtries = retry amounts if generation of object fails (this is used to prevent lag issues)
+							int maxtries = config.GenerationMaxTries;
+							//realcount = actual amount of objects generated
+							var realcount = 0;
+
+							//Attempting to generate Objects
+							while (trycount < maxtries)
+							{
+								if (WorldGen.AddLifeCrystal(WorldGen.genRand.Next(1, Main.maxTilesX), WorldGen.genRand.Next((int)(surface + 20.0), (int)(Main.maxTilesY - 100.0))))
+								{
+									realcount++;
+									//Determine if enough Objects have been generated
+									if (realcount == mCry) break;
+								}
+								trycount++;
+							}
+							//Notify user on success
+							args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Life Crystals.");
+							TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] {args.Player.Name} has generated and hid {realcount} Life Crystals.",71,8,185);
+							InformPlayers();
+							break;
 						}
 					}
-					trycount++;
-				}
-				InformPlayers();
-				args.Player.SendSuccessMessage("Generated and hid {0} Orbs.", realcount);
-			}
-			else
-			{
-				args.Player.SendInfoMessage("Usage: /genorbs (number of orbs to generate)");
-			}
-		}
-		#endregion
-		#region GenAltars Command
-		private void DoAltars(CommandArgs args)
-		{
-			if (args.Parameters.Count == 1)
-			{
-
-				var mAltar = Int32.Parse(args.Parameters[0]);
-				var surface = Main.worldSurface;
-				var trycount = 0;
-				const int maxtries = 1000000;
-				var realcount = 0;
-				while (trycount < maxtries)
-				{
-					var tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
-					var tryY = WorldGen.genRand.Next((int)surface + 10, Main.maxTilesY);
-
-					WorldGen.Place3x2(tryX, tryY, 26);
-					if (Main.tile[tryX, tryY].type == 26)
+					else
 					{
-						realcount++;
-						if (realcount == mAltar)
+						//notify user of command failure
+						args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen crystals <Amount of Crystals>");
+						break;
+					}
+				#endregion
+				#region Pots
+				case "pot":
+				case "pots":
+
+					if (args.Parameters.Count == 2)
+					{
+						if (!int.TryParse(args.Parameters[1], out _) || Int32.Parse(args.Parameters[1]) < 1)
+						{
+							args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen pots <Amount of Pots>");
 							break;
+						}
+						else
+						{
+							int mPot = Int32.Parse(args.Parameters[1]);
+							var trycount = 0;
+						    int maxtries = config.GenerationMaxTries;
+							var realcount = 0;
+							while (trycount < maxtries)
+							{
+								var tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
+
+								var tryY = WorldGen.genRand.Next((int)Main.worldSurface - 5, Main.maxTilesY - 20);
+
+
+								// This code was stolen from Terraria source, so dont blame me because it doesn't look neat haha.
+
+								int tile = (int)Main.tile[tryX, tryY + 1].type;
+								int wall = (int)Main.tile[tryX, tryY].wall;
+								int style = WorldGen.genRand.Next(0, 4);
+								if (tile == 147 || tile == 161 || tile == 162)
+									style = WorldGen.genRand.Next(4, 7);
+								if (tile == 60)
+									style = WorldGen.genRand.Next(7, 10);
+								if (Main.wallDungeon[(int)Main.tile[tryX, tryY].wall])
+									style = WorldGen.genRand.Next(10, 13);
+								if (tile == 41 || tile == 43 || (tile == 44 || tile == 481) || (tile == 482 || tile == 483))
+									style = WorldGen.genRand.Next(10, 13);
+								if (tile == 22 || tile == 23 || tile == 25)
+									style = WorldGen.genRand.Next(16, 19);
+								if (tile == 199 || tile == 203 || (tile == 204 || tile == 200))
+									style = WorldGen.genRand.Next(22, 25);
+								if (tile == 367)
+									style = WorldGen.genRand.Next(31, 34);
+								if (tile == 226)
+									style = WorldGen.genRand.Next(28, 31);
+								if (wall == 187 || wall == 216)
+									style = WorldGen.genRand.Next(34, 37);
+								if (tryY > Main.UnderworldLayer)
+									style = WorldGen.genRand.Next(13, 16);
+
+
+								if (!WorldGen.oceanDepths(tryX, tryY) && WorldGen.PlacePot(tryX, tryY, 28, (int)style))
+								{
+
+
+									realcount++;
+									if (realcount == mPot)
+										break;
+
+								}
+								trycount++;
+
+							}
+							args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Pots.");
+							TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] {args.Player.Name} has generated and hid {realcount} Pots.",71,8,185);
+							InformPlayers();
+							break;
+						}
+					}
+					else
+					{
+						args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen pots <Amount of Pots>");
+						break;
+					}
+				#endregion
+				#region Orbs
+				case "orb":
+				case "orbs":
+
+					if (args.Parameters.Count == 2)
+					{
+						if (!int.TryParse(args.Parameters[1], out int _) || Int32.Parse(args.Parameters[1]) < 1)
+						{
+							args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen orbs <Amount of Orbs>");
+							break;
+						}
+						else
+						{
+
+							var mOrb = Int32.Parse(args.Parameters[1]);
+							var surface = Main.worldSurface;
+							var trycount = 0;
+							int maxtries = config.GenerationMaxTries;
+							var realcount = 0;
+							while (trycount < maxtries)
+							{
+								var tryX = WorldGen.genRand.Next(50, Main.maxTilesX - 50);
+								var tryY = WorldGen.genRand.Next((int)surface + 20, Main.UnderworldLayer);
+
+								if ((!Main.tile[tryX, tryY].active()) && ((Main.tile[tryX, tryY].wall == 3) || (Main.tile[tryX, tryY].wall == 83)))
+								{
+									WorldGen.AddShadowOrb(tryX, tryY);
+
+									if (Main.tile[tryX, tryY].type == 31)
+									{
+
+										realcount++;
+										if (realcount == mOrb)
+											break;
+									}
+								}
+								trycount++;
+
+
+							}
+							InformPlayers();
+							if (!WorldGen.crimson)
+							{
+								args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Shadow Orbs.");
+								TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] {args.Player.Name} has generated and hid {realcount} Shadow Orbs.",71,8,185);
+							}
+							else
+							{
+								args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Crimson Hearts.");
+								TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] {args.Player.Name} has generated and hid {realcount} Crimson Hearts.",71,8,185);
+							}
+							break;
+						}
+					}
+					else
+					{
+						args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen orbs <Amount of Orbs>");
+						break;
 					}
 
-					trycount++;
-				}
-				InformPlayers();
-				args.Player.SendSuccessMessage("Generated and hid {0} Demon Altars.", realcount);
-			}
-			else
-			{
-				args.Player.SendInfoMessage("Usage: /genaltars (number of Demon Altars to generate)");
-			}
-		}
-		#endregion
-		#region GenTraps Command
-		private void DoTraps(CommandArgs args)
-		{
-			if (args.Parameters.Count == 1)
-			{
-				args.Player.SendInfoMessage("Generating traps.. this may take a while..");
-				var mTrap = Int32.Parse(args.Parameters[0]);
-				var surface = Main.worldSurface;
-				var trycount = 0;
-				const int maxtries = 100000;
-				var realcount = 0;
-				while (trycount < maxtries)
-				{
-					var tryX = WorldGen.genRand.Next(200, Main.maxTilesX - 200);
-					var tryY = WorldGen.genRand.Next((int)surface, Main.maxTilesY - 300);
+				#endregion
+				#region Altars
+				case "altar":
+				case "altars":
 
-
-					if (Main.tile[tryX, tryY].wall == 0 && WorldGen.placeTrap(tryX, tryY, -1))
+					if (args.Parameters.Count == 2)
 					{
-						realcount++;
-						if (realcount == mTrap)
+						if (!int.TryParse(args.Parameters[1], out _) || Int32.Parse(args.Parameters[1]) < 1)
+						{
+							args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen altars <Amount of Altars>");
 							break;
+						}
+						else
+						{
+							var mAltar = Int32.Parse(args.Parameters[1]);
+							var surface = Main.worldSurface;
+							var trycount = 0;
+							int maxtries = config.GenerationMaxTries;
+							var realcount = 0;
+							while (trycount < maxtries)
+							{
+								var tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
+								var tryY = WorldGen.genRand.Next((int)surface + 10, (int)Main.rockLayer);
+
+								if ((!Main.tile[tryX, tryY].active()) && ((Main.tile[tryX, tryY].wall == 3) || (Main.tile[tryX, tryY].wall == 83)))
+								{
+
+									if (!WorldGen.crimson) WorldGen.Place3x2(tryX, tryY, 26);
+									else WorldGen.Place3x2(tryX, tryY, 26, 1);
+
+
+									if (Main.tile[tryX, tryY].type == 26)
+									{
+										
+										realcount++;
+										if (realcount == mAltar)
+											break;
+									}
+								}
+								trycount++;
+							}
+							InformPlayers();
+							if (!WorldGen.crimson)
+							{
+								args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Demon Altars.");
+								TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] {args.Player.Name} has generated and hid {realcount} Demon Altars.",71,8,185);
+							}
+							else
+							{
+								args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Crimson Altars.");
+								TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] {args.Player.Name} has generated and hid {realcount} Crimson Altars.",71,8,185);
+							}
+
+							break;
+						}
+					}
+					else
+					{
+						args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen altars <Amount of Altars>");
+						break;
 					}
 
-					trycount++;
-				}
-				InformPlayers();
-				args.Player.SendSuccessMessage("Generated and hid {0} traps.", realcount);
-			}
-			else
-			{
-				args.Player.SendInfoMessage("Usage: /gentraps (number of Traps to generate)");
-			}
-		}
+				#endregion
+				#region Cave Traps
+				case "cavetrap":
+				case "cavetraps":
+
+					if (args.Parameters.Count == 2)
+					{
+						if (!int.TryParse(args.Parameters[1], out _) || Int32.Parse(args.Parameters[1]) < 1)
+						{
+							args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen cavetraps <Amount of Cave Traps>");
+							break;
+
+						}
+						else
+						{
+							var mTrap = Int32.Parse(args.Parameters[1]);
+							var surface = Main.worldSurface;
+							var trycount = 0;
+							int maxtries = config.GenerationMaxTries;
+							var realcount = 0;
+							while (trycount < maxtries)
+							{
+								var tryX = WorldGen.genRand.Next(200, Main.maxTilesX - 200);
+								var tryY = WorldGen.genRand.Next((int)surface, Main.UnderworldLayer - 100);
+								var type = WorldGen.genRand.Next(-1, 1);
+								if (Main.tile[tryX, tryY].wall == 0 && WorldGen.placeTrap(tryX, tryY, type))
+								{
+									realcount++;
+									if (realcount == mTrap)
+										break;
+								}
+
+								trycount++;
+							}
+							InformPlayers();
+							args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Randomized Cave Traps.");
+							TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] {args.Player.Name} has generated and hid {realcount} Randomized Cave Traps.", 71, 8, 185);
+							break;
+						}
+					}
+					else
+					{
+						args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen cavetraps <Amount of Cave Traps>");
+						break;
+
+					}
+
+
+                #endregion
+                #region Temple Traps
+                case "templetrap":
+				case "templetraps":
+
+					if (args.Parameters.Count == 2)
+					{
+						if (!int.TryParse(args.Parameters[1], out _) || Int32.Parse(args.Parameters[1]) < 1)
+						{
+							args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen templetraps <Amount of Temple Traps>");
+							break;
+						}
+						else
+						{
+							var mTrap = Int32.Parse(args.Parameters[1]);
+							var trycount = 0;
+							var surface = Main.worldSurface;
+							int maxtries = config.GenerationMaxTries;
+							var realcount = 0;
+							while (trycount < maxtries)
+								
+							{
+								var tryX = WorldGen.genRand.Next(250, Main.maxTilesX - 250);
+								var tryY = WorldGen.genRand.Next((int) surface, Main.UnderworldLayer);
+								
+
+
+								if (WorldGen.mayanTrap(tryX, tryY))
+									{
+										
+										realcount++;
+										if (realcount == mTrap) break;
+									}
+									
+								
+								
+								trycount++;
+								
+							}
+							InformPlayers();
+							args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Randomized Temple Traps.");
+							TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] {args.Player.Name} has generated and hid {realcount} Randomized Temple Traps.", 71, 8, 185);
+							break;
+								
+						}
+					}
+					else
+					{
+						args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen templetraps <Amount of Temple Traps>");
+						break;
+					}
+				#endregion
+				#region Statue Traps
+				case "statuetrap":
+				case "statuetraps":
+
+					if (args.Parameters.Count == 2)
+					{
+						if (!int.TryParse(args.Parameters[1], out _) || Int32.Parse(args.Parameters[1]) < 1)
+						{
+							args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen statuetraps <Amount of Statue Traps>");
+							break;
+						}
+						else
+						{
+							var mTrap = Int32.Parse(args.Parameters[1]);
+							var trycount = 0;
+							var surface = Main.worldSurface;
+							int maxtries = config.GenerationMaxTries;
+							var realcount = 0;
+							while (trycount < maxtries)
+
+							{
+								var tryX = WorldGen.genRand.Next(11, Main.maxTilesX - 11);
+								var tryY = WorldGen.genRand.Next((int)surface, Main.UnderworldLayer);
+								
+								WorldGen.PlaceStatueTrap(tryX, tryY);
+
+								if ((int)Main.tile[tryX,tryY].type == 105)
+								{
+									
+									realcount++;
+									if (realcount == mTrap) break;
+								}
+
+
+
+								trycount++;
+
+							}
+							InformPlayers();
+							args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Randomized Statue Traps.");
+							TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] {args.Player.Name} has generated and hid {realcount} Randomized Statue Traps.", 71, 8, 185);
+							break;
+
+						}
+					}
+					else
+					{
+						args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen statuetraps <Amount of Statue Traps>");
+						break;
+					}
+				#endregion
+				#region Lava Traps
+				case "lavatrap":
+				case "lavatraps":
+
+					if (args.Parameters.Count == 2)
+					{
+						if (!int.TryParse(args.Parameters[1], out _) || Int32.Parse(args.Parameters[1]) < 1)
+						{
+							args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen lavatraps <Amount of Lava Traps>");
+							break;
+						}
+						else
+						{
+							var mTrap = Int32.Parse(args.Parameters[1]);
+							var trycount = 0;
+							
+							var surface = Main.worldSurface;
+							int maxtries = config.GenerationMaxTries;
+							var realcount = 0;
+							while (trycount < maxtries)
+							
+							{
+								var tryX = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
+								var tryY = WorldGen.genRand.Next(750, Main.UnderworldLayer);
+
+
+						
+
+								if (WorldGen.placeLavaTrap(tryX, tryY))
+								{
+									
+									realcount++;
+									if (realcount == mTrap) break;
+								}
+
+
+
+								trycount++;
+
+							}
+							InformPlayers();
+							args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Lava Traps.");
+							TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] {args.Player.Name} has generated and hid {realcount} Lava Traps.", 71, 8, 185);
+							break;
+
+						}
+					}
+					else
+					{
+						args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen lavatraps <Amount of Lava Traps>");
+						break;
+					}
+				#endregion
+
+				#region Default case
+				default:
+					args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Please refer to the following options...");
+					PrintOptions(args);
+					break;
+                    #endregion
+            }
+
+        }
+   
 		#endregion
+
+		
+		
 		#region GenStatues Command
 		private void DoStatues(CommandArgs args)
 		{
@@ -495,7 +813,7 @@ namespace WorldRefill
                                              "Ukown"
                                          };
 				#endregion
-
+				
 				string mReqs = args.Parameters[1].ToLowerInvariant();
 				var mStatue = Int32.Parse(args.Parameters[0]);
 				var surface = Main.worldSurface;
@@ -559,9 +877,8 @@ namespace WorldRefill
 		#region GenOres Command
 		private static void DoOres(CommandArgs args)
 		{
-			if (WorldGen.genRand == null)
-				WorldGen.genRand = new Random();
-
+			
+			
 			TSPlayer ply = args.Player;
 			ushort oreType;
 			float oreAmts = 100f;
@@ -783,7 +1100,8 @@ namespace WorldRefill
 		{
 			if (args.Parameters.Count == 1)
 			{
-
+				
+				
 				var mWeb = Int32.Parse(args.Parameters[0]);
 				var surface = Main.worldSurface;
 				var trycount = 0;
@@ -829,7 +1147,7 @@ namespace WorldRefill
 			}
 			else
 			{
-				args.Player.SendInfoMessage("Usage: /genwebs (number of webs to generate)");
+				args.Player.SendMessage("Usage: /genwebs [number of webs to generate]",189,0,15);
 			}
 		}
 		#endregion
@@ -1053,22 +1371,35 @@ namespace WorldRefill
 		#region GenIslandHouse Command
 		private void DoIslandHouse(CommandArgs args)
 		{
+			int housestyle;
+			if ((!int.TryParse(args.Parameters[0], out housestyle) || args.Parameters[0] == null ))
+			{
+				args.Player.SendErrorMessage("Arguement was not an integer or no Arguement! /PLACEHOLDER/");
+				housestyle = 1;
+
+			}
+			else housestyle = int.Parse(args.Parameters[0]);
+			// This is for testing purposes and should be removed in next build.
+			args.Player.SendMessage(Convert.ToString(housestyle), 189,0,15);
+			
+
 			int tryX = args.Player.TileX;
 			int tryY = args.Player.TileY;
-			WorldGen.IslandHouse(tryX, tryY + 1);
+			WorldGen.IslandHouse(tryX, tryY + 1, housestyle);
 			args.Player.SendSuccessMessage("Attempted to generate an Island House here.");
 			InformPlayers();
 		}
 		#endregion
 		#region GenFloatingIsland Command
+		
 		private void DoIsland(CommandArgs args)
 		{
 			int tryX = args.Player.TileX;
 			int tryY = args.Player.TileY;
 			if (tryY <= 50)
 				tryY = 51;
-			WorldGen.CloudIsland(tryX, tryY - 50);
-			args.Player.SendSuccessMessage("Attempted to generate a floating island above you.");
+			WorldGen.CloudIsland(tryX, tryY);
+			args.Player.SendSuccessMessage("Attempted to generate a floating island at your position");
 			InformPlayers();
 		}
 		#endregion
@@ -1078,7 +1409,7 @@ namespace WorldRefill
 			int tryX = args.Player.TileX;
 			int tryY = args.Player.TileY;
 			WorldGen.CloudIsland(tryX, tryY + 9);
-			WorldGen.IslandHouse(tryX, tryY + 1);
+			WorldGen.IslandHouse(tryX, tryY + 1,1);
 
 			args.Player.SendSuccessMessage("Attempted to generate an un-looted floating island at your position.");
 			InformPlayers();
@@ -1269,7 +1600,7 @@ namespace WorldRefill
 
 		#region Utils
 		#region InformPlayers
-		//Updating all players
+		//Updating all players Reloads Tile Sections
 		public static void InformPlayers(bool hard = false)
 		{
 			foreach (TSPlayer person in TShock.Players)
@@ -1282,7 +1613,7 @@ namespace WorldRefill
 						{
 							for (int k = 0; k < Main.maxSectionsY; k++)
 							{
-								Netplay.serverSock[i].tileSection[j, k] = false;
+								Netplay.Clients[i].TileSections[j, k] = false;
 							}
 						}
 					}
@@ -1321,3 +1652,4 @@ namespace WorldRefill
 		#endregion
 	}
 }
+#endregion
