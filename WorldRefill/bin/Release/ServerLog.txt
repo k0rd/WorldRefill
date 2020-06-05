@@ -1,0 +1,4 @@
+[05/28/20 20:22:28] [Server API] Verbose: TerrariaApi - Server v2.1.0.0 started.
+[05/28/20 20:22:28] [Server API] Verbose: 	Command line: "C:\Users\matth\OneDrive\Documents\Tshock Testing and Server\WorldRefill-master\WorldRefill\bin\Release\TerrariaServer.exe" 
+[05/28/20 20:22:28] [Server API] Verbose: 	OS: Microsoft Windows NT 6.2.9200.0 (64bit: True)
+[05/28/20 20:22:28] [Server API] Verbose: 	Mono: False

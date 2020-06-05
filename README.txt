@@ -35,6 +35,11 @@ Altered the altar generation making it so that in crimson worlds it will create 
 
 Also some minor changes that mainly affect the clarity of the feedback to the user.
 
+Regex has been implemented and error generation has been changed so that errors are more dynamic.
+
+Statues are fundamentally changed, they now utilize Terraria's built-in statuelist meaning that even if terraria updates to add statues,
+they will also be added to the list. the spawning of specific statues now uses a dictionary, and includes more statues.
+
 /* WIP */
 
 The rest of the options need to be implemented, this should take a couple of days max hopefully if i do not run into any bugs.
