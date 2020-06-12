@@ -1,39 +1,25 @@
-﻿using Microsoft.Xna.Framework;
-using Mono.Data.Sqlite;
+﻿using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
-using OTAPI;
 using OTAPI.Tile;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Data;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
+using System.Net.Mail;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
 using Terraria;
 using Terraria.DataStructures;
-using Terraria.GameContent;
-using Terraria.GameContent.Biomes;
-using Terraria.GameContent.Biomes.CaveHouse;
-using Terraria.GameContent.Generation;
-using Terraria.GameContent.ObjectInteractions;
-using Terraria.GameContent.RGB;
-using Terraria.GameContent.UI.States;
 using Terraria.ID;
+using Terraria.Modules;
 using Terraria.UI;
-using Terraria.WorldBuilding;
 using TerrariaApi.Server;
 using TShockAPI;
 using TShockAPI.DB;
 using TShockAPI.Hooks;
+using TShockAPI.Net;
 
 namespace WorldRefill
 {
@@ -269,19 +255,39 @@ namespace WorldRefill
                 "sandtraps",
                 "statues",
                 "ores",
-                "webs"
+                "webs",
+                "shrooms"
+
 
             };
         readonly IReadOnlyList<string> structslist = new List<string>
-        { };
-        private string PrintOptions()
+        {
+            "trees",
+            "dungeon",
+
+
+
+
+
+        };
+        private void PrintOptions(CommandArgs args)
         {
             string options = "";
+            string structs = "";
+            args.Player.SendErrorMessage("Resources:");
             foreach (string option in optionslist)
             {
-                options += $" | {option}";
+                options += $"| {option} | ";
             }
-            return options;
+            args.Player.SendErrorMessage(options);
+            args.Player.SendErrorMessage("Structures:");
+            foreach (string structure in structslist)
+            {
+                structs += $"| {structure} | ";
+            }
+            args.Player.SendErrorMessage(structs);
+            
+            
         }
 
 
@@ -295,55 +301,62 @@ namespace WorldRefill
             {
                 args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! " +
                       "Please refer to the following options...");
-                args.Player.SendErrorMessage(PrintOptions());
+                PrintOptions(args);
 
                 return;
             }
-
-
-
-
-            var amountregex = new Regex(@"\b(?<amount>[1-9]\d*){1}$");
-            Match amountmatch;
-            try
+            int amount;
+            if (args.Parameters.Count == 1 && structslist.Contains(args.Parameters[0].ToLowerInvariant()))
             {
-                amountmatch = amountregex.Match(args.Parameters[1]);
+                amount = 0;
+
             }
-            catch (ArgumentOutOfRangeException)
+            else
             {
-                amountmatch = amountregex.Match("0");
-            }
 
 
-            if (!amountmatch.Success || float.Parse(args.Parameters[1]) < 1)
-            {
-                bool found = false;
-                foreach (string option in optionslist)
+
+                var amountregex = new Regex(@"\b(?<amount>[1-9]\d*){1}$");
+                Match amountmatch;
+                try
                 {
-                    if (option == args.Parameters[0])
+                    amountmatch = amountregex.Match(args.Parameters[1]);
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    amountmatch = amountregex.Match("0");
+                }
+
+
+                if (!amountmatch.Success || float.Parse(args.Parameters[1]) < 1)
+                {
+                    bool found = false;
+                    foreach (string option in optionslist)
                     {
-                        found = true;
-                        if (option == "statues" || option == "ores")
+                        if (option == args.Parameters[0].ToLowerInvariant())
                         {
-                            string singular = option.Substring(0, option.LastIndexOf('s'));
-                            args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen {option} <Amount of {option}> [Specified {singular}]");
+                            found = true;
+                            if (option == "statues" || option == "ores")
+                            {
+                                string singular = option.Substring(0, option.LastIndexOf('s'));
+                                args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen {option} <Amount of {option}> [Specified {singular}]");
+                            }
+                            else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen {option} <Amount of {option}>");
+                            break;
                         }
-                        else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen {option} <Amount of {option}>");
-                        break;
                     }
-                }
-                if (!found)
-                {
-                    args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! " +
-                    "Please refer to the following options...");
-                    args.Player.SendErrorMessage(PrintOptions());
+                    if (!found)
+                    {
+                        args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! " +
+                        "Please refer to the following options...");
+                        PrintOptions(args);
 
+                    }
+                    return;
                 }
-                return;
+                amount = int.Parse(amountmatch.Value);
             }
 
-
-            int amount = int.Parse(amountmatch.Value);
             var surface = Main.worldSurface;
             var trycount = 0;
             //maxtries = retry amounts if generation of object fails (this is used to prevent lag issues)
@@ -951,6 +964,8 @@ namespace WorldRefill
                 #endregion
                 #region Ores
                 case "ores":
+
+
                     ushort oreID;
                     int oreTier;
                     int minFrequency;
@@ -1036,6 +1051,7 @@ namespace WorldRefill
 
 
                     };
+                    if (amount > 1000) args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] This one may take a while to load. Please wait...");
 
                     if (args.Parameters.Count == 2)
                     {
@@ -1160,7 +1176,7 @@ namespace WorldRefill
 
                         InformPlayers();
                         args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} randomized ores.");
-                        if(realcount !=0)TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} randomized ores.", 71, 8, 185);
+                        if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} randomized ores.", 71, 8, 185);
                         break;
                     }
 
@@ -1312,7 +1328,7 @@ namespace WorldRefill
 
                             InformPlayers();
                             args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} {findore[0]} ores.");
-                            if(realcount != 0)TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} {findore[0]} ores.", 71, 8, 185);
+                            if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} {findore[0]} ores.", 71, 8, 185);
                         }
                     }
                     break;
@@ -1364,7 +1380,7 @@ namespace WorldRefill
 
                     InformPlayers();
                     args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} webs.");
-                    if(realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} webs.", 71, 8, 185);
+                    if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} webs.", 71, 8, 185);
                     break;
 
 
@@ -1389,19 +1405,81 @@ namespace WorldRefill
                         counter++;
                     }
                     WorldGen.AddTrees();
-                    
+
                     InformPlayers();
                     args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated trees on the surface!.");
-                    if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated trees on the surface!", 71, 8, 185);
+                    TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated trees on the surface!", 71, 8, 185);
                     break;
 
                 #endregion
+                #region Shrooms
+                case "shrooms":
 
+                    List<ushort> GetShroom(ITile tile)
+                    {
+                        if (tile.type == TileID.Grass) return new List<ushort> { TileID.Plants, 21, 144 };
+                        else if (tile.type == TileID.CorruptGrass) return new List<ushort> { TileID.CorruptPlants, 8, 144 };
+                        else if (tile.type == TileID.CrimsonGrass) return new List<ushort> { TileID.CrimsonPlants, 15, 270 };
+                        else if (tile.type == TileID.MushroomGrass) return new List<ushort> { TileID.MushroomPlants, 0, (ushort)tile.frameX };
+                        else return null;
+
+                    };
+
+                    List<ushort> shroom;
+
+                    ITile blockbelow;
+                    
+
+                    while (trycount < maxtries)
+                    {
+                        int tryX = WorldGen.genRand.Next(200, Main.maxTilesX - 200);
+                        int tryY = WorldGen.genRand.Next((int)Main.worldSurface - 150, Main.UnderworldLayer);
+
+                        blockbelow = Main.tile[tryX, tryY + 1];
+                        shroom = GetShroom(blockbelow);
+
+                        while (shroom == null)
+                        {
+                            tryY--;
+                            blockbelow = Main.tile[tryX, tryY + 1];
+                            shroom = GetShroom(blockbelow);
+                            if (tryY < Main.worldSurface - 50) break;
+                        }
+                        if (shroom != null && !Main.tile[tryX,tryY].active())
+                        {
+                            
+                            
+                            WorldGen.PlaceTile(tryX, tryY, shroom[0], false, true, -1, shroom[1]);
+                            Main.tile[tryX, tryY].frameX = (short)shroom[2];
+                            if (Main.tile[tryX, tryY].type == shroom[0])
+                            {
+                                
+                                realcount++;
+                                if (realcount == amount) break;
+                            }
+                        }
+                        trycount++;
+                    }
+
+                    InformPlayers();
+                    args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} mushrooms in their biomes!");
+                    if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} mushrooms in their biomes!", 71, 8, 185);
+
+                    break;
+                #endregion
+                #region dungeon
+                case "dungeon":
+                    int posX = args.Player.TileX;
+                    int posY = args.Player.TileY;
+                    WorldGen.MakeDungeon(posX, posY);
+                    InformPlayers();
+                    break;
+                #endregion
 
                 #region Default case
                 default:
                     args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Please refer to the following options...");
-                    args.Player.SendErrorMessage(PrintOptions());
+                    PrintOptions(args);
                     break;
                     #endregion
             }
@@ -1418,29 +1496,7 @@ namespace WorldRefill
 
         #endregion
 
-        #region GenShrooms Command
-        private void DoShrooms(CommandArgs args)
-        {
-            int tryX = args.Player.TileX;
-            int tryY = args.Player.TileY;
-            const int offset = 25;
-            WorldGen.ShroomPatch(tryX, tryY + 1);
-            for (int z = args.Player.TileX - offset; z < args.Player.TileX + offset; z++)
-            {
-                for (int y = args.Player.TileY - offset; y < args.Player.TileY + offset; y++)
-                {
-                    if (Main.tile[z, y].active())
-                    {
-                        WorldGen.SpreadGrass(z, y, 59, 70, false);
 
-                    }
-                }
-            }
-
-            InformPlayers();
-            args.Player.SendSuccessMessage("Mushroom Farm generated.");
-        }
-        #endregion
 
         #region GenPyramid Command
         private void DoPyramid(CommandArgs args)
