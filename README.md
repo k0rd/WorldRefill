@@ -97,10 +97,10 @@ the trap only to realize that the method itself did it for me :(
 
 Also some minor changes that mainly affect the clarity of the feedback to the user.
 * 2.0.1
-   * Statues are fundamentally changed, they now utilize Terraria's built-in statuelist meaning that even if terraria updates to add statues,
+	* Statues are fundamentally changed, they now utilize Terraria's built-in statuelist meaning that even if terraria updates to add statues,
 they will also be added to the list. the spawning of specific statues now uses a dictionary, and includes more statues.
 
-   *Ores have been implemented and refined - Chlorophyte now only spawns in the jungle and only replaces mud blocks
+	* Ores have been implemented and refined - Chlorophyte now only spawns in the jungle and only replaces mud blocks
 unnatural ores have been removed such as meteorite as that drops from meteors
 * 2.0.2
    * Structures have been added, these generate structures as opposed to resources
@@ -121,8 +121,7 @@ however i left it with any block as to give freedom to the user
 	* The barebones for Temple and Living trees are there, the problem with Temple is that it spawns the shape and the path but not traps, or objects in the temple.
 Living tree also needs to be looked at when i get time.
 
-	* There is a new cs file called AdvancedRegen.cs, this is to handle more complicated regeneration and will be used to handle the temple and other bigger structures,
-this is due to limitations of Terraria's code so i may need to manually edit it myself in order for the generation to work in non-natural environments.
+
 
 	
 
