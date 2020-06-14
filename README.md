@@ -27,6 +27,8 @@
 | shrooms | Spawns mushrooms in their respective biome |/gen shrooms (number of shrooms) |
 | trees | Spawns trees in the world |/gen trees |
 | dungeon | Spawns a dungeon in the world |/gen dungeon |
+| pyramid | Spawns a pyramid in the world |/gen pyramid |
+| minehouse | Spawns a minehouse in the world |/gen minehouse
 
 
  
