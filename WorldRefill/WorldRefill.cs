@@ -48,12 +48,12 @@ namespace WorldRefill
         {
             get { return "Refill your world!"; }
         }
-        #endregion
+
 
         private static string savepath = TShock.SavePath;
         private static Config config;
         private IDbConnection ChestDB;
-
+        #endregion
 
         #region Initialize
         public override void Initialize()
@@ -61,7 +61,7 @@ namespace WorldRefill
             #region Gen Commands
             Commands.ChatCommands.Add(new Command("worldrefill.generate", Generate, "generate", "gen")
             {
-                AllowServer = false
+                AllowServer = false,
             });
 
 
@@ -233,8 +233,7 @@ namespace WorldRefill
             #endregion
             public bool UseInfiniteChests = false;
             public bool GenInsideProtectedRegions = false;
-
-            public int GenerationMaxTries = 1000000; // Setting this value higher may result in more lag when generating as this is the maximum amount of tries it will take to generate a structure.
+            public int GenerationMaxTries = 1000000; // Setting this value higher may result in more lag when generating as this is the maximum amount of tries it will take to generate amenities.
         }
         #endregion
         #region Case Options
@@ -264,7 +263,10 @@ namespace WorldRefill
         {
             "trees",
             "dungeon",
-
+            //"temple"
+            //"livingtree"
+            "pyramid",
+            "minehouse"
 
 
 
@@ -286,8 +288,8 @@ namespace WorldRefill
                 structs += $"| {structure} | ";
             }
             args.Player.SendErrorMessage(structs);
-            
-            
+
+
         }
 
 
@@ -363,6 +365,8 @@ namespace WorldRefill
             int maxtries = config.GenerationMaxTries;
             //realcount = actual amount of objects generated
             var realcount = 0;
+            int tryX;
+            int tryY;
             List<string> lines;
 
 
@@ -401,9 +405,9 @@ namespace WorldRefill
 
                     while (trycount < maxtries)
                     {
-                        var tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
+                        tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
 
-                        var tryY = WorldGen.genRand.Next((int)Main.worldSurface - 5, Main.maxTilesY - 20);
+                        tryY = WorldGen.genRand.Next((int)Main.worldSurface - 5, Main.maxTilesY - 20);
 
 
                         // This code was stolen from Terraria source, so dont blame me because it doesn't look neat haha.
@@ -455,8 +459,8 @@ namespace WorldRefill
 
                     while (trycount < maxtries)
                     {
-                        var tryX = WorldGen.genRand.Next(50, Main.maxTilesX - 50);
-                        var tryY = WorldGen.genRand.Next((int)surface + 20, Main.UnderworldLayer);
+                        tryX = WorldGen.genRand.Next(50, Main.maxTilesX - 50);
+                        tryY = WorldGen.genRand.Next((int)surface + 20, Main.UnderworldLayer);
 
                         if ((!Main.tile[tryX, tryY].active()) && ((Main.tile[tryX, tryY].wall == WallID.EbonstoneUnsafe) || (Main.tile[tryX, tryY].wall == WallID.CrimstoneUnsafe)))
                         {
@@ -496,8 +500,8 @@ namespace WorldRefill
 
                     while (trycount < maxtries)
                     {
-                        var tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
-                        var tryY = WorldGen.genRand.Next((int)surface + 10, (int)Main.rockLayer);
+                        tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
+                        tryY = WorldGen.genRand.Next((int)surface + 10, (int)Main.rockLayer);
 
                         if ((!Main.tile[tryX, tryY].active()) && ((Main.tile[tryX, tryY].wall == WallID.EbonstoneUnsafe) || (Main.tile[tryX, tryY].wall == WallID.CrimstoneUnsafe)))
                         {
@@ -538,8 +542,8 @@ namespace WorldRefill
 
                     while (trycount < maxtries)
                     {
-                        var tryX = WorldGen.genRand.Next(200, Main.maxTilesX - 200);
-                        var tryY = WorldGen.genRand.Next((int)surface, Main.UnderworldLayer - 100);
+                        tryX = WorldGen.genRand.Next(200, Main.maxTilesX - 200);
+                        tryY = WorldGen.genRand.Next((int)surface, Main.UnderworldLayer - 100);
                         var type = WorldGen.genRand.Next(-1, 1);
                         if (Main.tile[tryX, tryY].wall == WallID.None && WorldGen.placeTrap(tryX, tryY, type))
                         {
@@ -565,8 +569,8 @@ namespace WorldRefill
                     while (trycount < maxtries)
 
                     {
-                        var tryX = WorldGen.genRand.Next(250, Main.maxTilesX - 250);
-                        var tryY = WorldGen.genRand.Next((int)surface, Main.UnderworldLayer);
+                        tryX = WorldGen.genRand.Next(250, Main.maxTilesX - 250);
+                        tryY = WorldGen.genRand.Next((int)surface, Main.UnderworldLayer);
 
 
                         if (WorldGen.mayanTrap(tryX, tryY))
@@ -594,8 +598,8 @@ namespace WorldRefill
                     while (trycount < maxtries)
 
                     {
-                        var tryX = WorldGen.genRand.Next(11, Main.maxTilesX - 11);
-                        var tryY = WorldGen.genRand.Next((int)surface, Main.UnderworldLayer);
+                        tryX = WorldGen.genRand.Next(11, Main.maxTilesX - 11);
+                        tryY = WorldGen.genRand.Next((int)surface, Main.UnderworldLayer);
 
                         WorldGen.PlaceStatueTrap(tryX, tryY);
 
@@ -626,8 +630,8 @@ namespace WorldRefill
                     while (trycount < maxtries)
 
                     {
-                        var tryX = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
-                        var tryY = WorldGen.genRand.Next(750, Main.UnderworldLayer);
+                        tryX = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
+                        tryY = WorldGen.genRand.Next(750, Main.UnderworldLayer);
 
 
 
@@ -656,8 +660,8 @@ namespace WorldRefill
                     while (trycount < maxtries)
 
                     {
-                        var tryX = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
-                        var tryY = WorldGen.genRand.Next((int)surface, Main.UnderworldLayer);
+                        tryX = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
+                        tryY = WorldGen.genRand.Next((int)surface, Main.UnderworldLayer);
 
 
 
@@ -754,8 +758,8 @@ namespace WorldRefill
                         {
                             var tryType = WorldGen.genRand.Next(0, WorldGen.statueList.Count() - 1);
 
-                            var tryX = WorldGen.genRand.Next(30, Main.maxTilesX - 30);
-                            var tryY = WorldGen.genRand.Next((int)surface + 20, Main.UnderworldLayer);
+                            tryX = WorldGen.genRand.Next(30, Main.maxTilesX - 30);
+                            tryY = WorldGen.genRand.Next((int)surface + 20, Main.UnderworldLayer);
                             var statue = WorldGen.statueList[tryType];
 
 
@@ -925,8 +929,8 @@ namespace WorldRefill
                             statues.TryGetValue(findStatue[0], out Point16 statue);
                             while (trycount < maxtries)
                             {
-                                var tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
-                                var tryY = WorldGen.genRand.Next((int)surface + 20, Main.UnderworldLayer);
+                                tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
+                                tryY = WorldGen.genRand.Next((int)surface + 20, Main.UnderworldLayer);
 
                                 while (!tileValidation(tryX, tryY))
                                 {
@@ -1346,8 +1350,8 @@ namespace WorldRefill
 
                     while (trycount < maxtries)
                     {
-                        var tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
-                        var tryY = WorldGen.genRand.Next(50, Main.UnderworldLayer);
+                        tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
+                        tryY = WorldGen.genRand.Next(50, Main.UnderworldLayer);
                         int direction = WorldGen.genRand.Next(2);
                         if (direction == 0)
                         {
@@ -1391,8 +1395,8 @@ namespace WorldRefill
                     var counter = 0;
                     while ((double)counter < (double)Main.maxTilesX * 0.003)
                     {
-                        int tryX = WorldGen.genRand.Next(50, Main.maxTilesX - 50);
-                        int tryY = WorldGen.genRand.Next(25, 50);
+                        tryX = WorldGen.genRand.Next(50, Main.maxTilesX - 50);
+                        tryY = WorldGen.genRand.Next(25, 50);
                         for (var tick = tryX - tryY; tick < tryX + tryY; tick++)
                         {
                             var offset = 20;
@@ -1428,12 +1432,12 @@ namespace WorldRefill
                     List<ushort> shroom;
 
                     ITile blockbelow;
-                    
+
 
                     while (trycount < maxtries)
                     {
-                        int tryX = WorldGen.genRand.Next(200, Main.maxTilesX - 200);
-                        int tryY = WorldGen.genRand.Next((int)Main.worldSurface - 150, Main.UnderworldLayer);
+                        tryX = WorldGen.genRand.Next(200, Main.maxTilesX - 200);
+                        tryY = WorldGen.genRand.Next((int)Main.worldSurface - 150, Main.UnderworldLayer);
 
                         blockbelow = Main.tile[tryX, tryY + 1];
                         shroom = GetShroom(blockbelow);
@@ -1445,15 +1449,15 @@ namespace WorldRefill
                             shroom = GetShroom(blockbelow);
                             if (tryY < Main.worldSurface - 50) break;
                         }
-                        if (shroom != null && !Main.tile[tryX,tryY].active())
+                        if (shroom != null && !Main.tile[tryX, tryY].active())
                         {
-                            
-                            
+
+
                             WorldGen.PlaceTile(tryX, tryY, shroom[0], false, true, -1, shroom[1]);
                             Main.tile[tryX, tryY].frameX = (short)shroom[2];
                             if (Main.tile[tryX, tryY].type == shroom[0])
                             {
-                                
+
                                 realcount++;
                                 if (realcount == amount) break;
                             }
@@ -1467,15 +1471,102 @@ namespace WorldRefill
 
                     break;
                 #endregion
-                #region dungeon
+                #region Dungeon
                 case "dungeon":
-                    int posX = args.Player.TileX;
-                    int posY = args.Player.TileY;
-                    WorldGen.MakeDungeon(posX, posY);
-                    InformPlayers();
+
+
+                    tryX = args.Player.TileX; //Gets X tile from the right of the character
+                    tryY = args.Player.TileY; //Gets Y Tile from the head tile of the character
+
+                    if ((Main.tile[tryX, tryY + 3].active() || Main.tile[tryX + 1, tryY + 3].active()) && inWorld(tryX, tryY)) // checks if player is standing on tile and the dungeon is not by the world border
+                    {
+                        WorldGen.MakeDungeon(tryX, tryY);
+                        InformPlayers();
+                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated a Dungeon at your location!");
+                        TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated a Dungeon in the world!", 71, 8, 185);
+
+                    }
+                    else
+                    {
+                        args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Failed to create a Dungeon at this location! You have to be standing on a block and away from the edges of the world!");
+
+                    }
                     break;
                 #endregion
 
+                /*
+                #region Temple
+            case "temple":
+                TempleBuilder.makeTemple((int)args.Player.X, (int)args.Player.Y);
+
+                InformPlayers();
+                break;
+            #endregion
+
+
+                #region Living Tree
+                // Needs revision, does not work for some reason
+                case "livingtree":
+
+                    tryX = args.Player.TileX;
+                    tryY = args.Player.TileY;
+                    WorldGen.GrowLivingTree(tryX, tryY+1, true);
+
+                    args.Player.SendSuccessMessage("Attempted to grow a living tree at your position.");
+                    InformPlayers();
+                    break;
+
+            #endregion
+                */
+                #region Pyramid
+                case "pyramid":
+
+                    tryX = args.Player.TileX;
+                    tryY = args.Player.TileY;
+
+
+                    if ((Main.tile[tryX, tryY + 3].active() || Main.tile[tryX + 1, tryY + 3].active()) && inWorld(tryX, tryY))
+                        if (WorldGen.Pyramid(tryX, tryY))
+                        {
+                            InformPlayers();
+                            args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] A Pyramid was Successfully Generated.");
+                            TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated a Pyramid in the world!", 71, 8, 185);
+                        }
+                        else
+                        {
+                            args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Unexpected Error Occurred, Please contact the administrator!");
+                        }
+                    else
+                    {
+                        args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Failed to create a pyramid at this location! You have to be standing on a block and away from the edges of the world!");
+
+                    }
+                    break;
+
+                #region Minehouse
+                case "minehouse":
+
+                    tryX = args.Player.TileX;
+                    tryY = args.Player.TileY;
+                    if (tryY > Main.worldSurface && tryY < Main.UnderworldLayer && inWorld(tryX,tryY))
+                    {
+                        WorldGen.MineHouse(tryX, tryY);
+                        
+                        InformPlayers();
+                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] A Minehouse was Successfully Generated.");
+                        TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated a Minehouse in the world!", 71, 8, 185);
+
+                    }
+                    else
+                    {
+                        args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Failed to create a Minehouse at this location! You have to be in the cavern layer and not near the world border!");
+                    }
+                    
+                    break;
+
+                #endregion
+
+                #endregion
                 #region Default case
                 default:
                     args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Please refer to the following options...");
@@ -1497,406 +1588,368 @@ namespace WorldRefill
         #endregion
 
 
+        /*
 
-        #region GenPyramid Command
-        private void DoPyramid(CommandArgs args)
-        {
-            int tryX = args.Player.TileX;
-            int tryY = args.Player.TileY;
-            bool resulta;
-            resulta = WorldGen.Pyramid(tryX, tryY);
+            #region Hellevator Command
+            private void DoHV(CommandArgs args)
+            {
+                int meX = args.Player.TileX;
+                int meY = args.Player.TileY;
+                const int maxsize = 25;
+                const int bump = 4;
+                int cx;
+                int ypos = 0;
+                int start = 0;
 
-            if (resulta)
-            {
-                InformPlayers();
-                args.Player.SendSuccessMessage("A pyramid was created.");
-            }
-            else
-            {
-                args.Player.SendErrorMessage("A pyramid cannot be created here.");
-            }
-        }
-        #endregion
-        #region Hellevator Command
-        private void DoHV(CommandArgs args)
-        {
-            int meX = args.Player.TileX;
-            int meY = args.Player.TileY;
-            const int maxsize = 25;
-            const int bump = 4;
-            int cx;
-            int ypos = 0;
-            int start = 0;
-
-            int bottom = Main.maxTilesY - 150;
-            int width = 3;
-            if (args.Parameters.Count == 1)
-                width = Int32.Parse(args.Parameters[0]);
-            if (width < 2) width = 2;
-            if (width > maxsize) width = maxsize;
-            start = meX - (width / 2);
-            ypos = meY + bump;
-            start--;
-            width++;
-            int tl = 121;
-            int wl = 25;
-            int a = WorldGen.genRand.Next(1, 14);
-            switch (a)
-            {
-                case 1:
-                    tl = 38;
-                    break;
-                case 2:
-                    tl = 30;
-                    break;
-                case 3:
-                    tl = 41;
-                    break;
-                case 4:
-                    tl = 43;
-                    break;
-                case 5:
-                    tl = 44;
-                    break;
-                case 6:
-                    tl = 45;
-                    break;
-                case 7:
-                    tl = 46;
-                    break;
-                case 8:
-                    tl = 47;
-                    break;
-                case 9:
-                    tl = 75;
-                    break;
-                case 10:
-                    tl = 76;
-                    break;
-                case 11:
-                    tl = 119;
-                    break;
-                case 12:
-                    tl = 121;
-                    break;
-                case 13:
-                    tl = 122;
-                    break;
-            }
-            a = WorldGen.genRand.Next(1, 16);
-            switch (a)
-            {
-                case 1:
-                    wl = 4;
-                    break;
-                case 2:
-                    wl = 5;
-                    break;
-                case 3:
-                    wl = 6;
-                    break;
-                case 4:
-                    wl = 10;
-                    break;
-                case 5:
-                    wl = 11;
-                    break;
-                case 6:
-                    wl = 12;
-                    break;
-                case 7:
-                    wl = 17;
-                    break;
-                case 8:
-                    wl = 18;
-                    break;
-                case 9:
-                    wl = 19;
-                    break;
-                case 10:
-                    wl = 20;
-                    break;
-                case 11:
-                    wl = 21;
-                    break;
-                case 12:
-                    wl = 23;
-                    break;
-                case 13:
-                    wl = 24;
-                    break;
-                case 14:
-                    wl = 25;
-                    break;
-                case 15:
-                    wl = 26;
-                    break;
-            }
-
-            for (cx = start; cx < width + start; cx++)
-            {
-                int xc;
-                for (xc = ypos; xc < bottom; xc++)
+                int bottom = Main.maxTilesY - 150;
+                int width = 3;
+                if (args.Parameters.Count == 1)
+                    width = Int32.Parse(args.Parameters[0]);
+                if (width < 2) width = 2;
+                if (width > maxsize) width = maxsize;
+                start = meX - (width / 2);
+                ypos = meY + bump;
+                start--;
+                width++;
+                int tl = 121;
+                int wl = 25;
+                int a = WorldGen.genRand.Next(1, 14);
+                switch (a)
                 {
-                    if ((cx == start) || (cx == width + start - 1))
-                    {
-                        Main.tile[cx, xc].type = (byte)tl;
-                        Main.tile[cx, xc].active(true);
-                        Main.tile[cx, xc].slope(0);
-                        Main.tile[cx, xc].halfBrick(false);
-                    }
-                    else
-                    {
-                        WorldGen.KillTile(cx, xc, false, false, false);
-                        Main.tile[cx, xc].wall = (byte)wl;
-                    }
-                }
-            }
-
-            InformPlayers();
-            args.Player.SendSuccessMessage("Going down?");
-        }
-        #endregion
-        #region GenMineHouse Command
-        private void DoMineHouse(CommandArgs args)
-        {
-            int tryX = args.Player.TileX;
-            int tryY = args.Player.TileY;
-            WorldGen.MineHouse(tryX, tryY + 1);
-            args.Player.SendSuccessMessage("Attempted to generate a Mine House here.");
-            InformPlayers();
-        }
-        #endregion
-        #region GenIslandHouse Command
-        private void DoIslandHouse(CommandArgs args)
-        {
-            int housestyle;
-            if ((!int.TryParse(args.Parameters[0], out housestyle) || args.Parameters[0] == null))
-            {
-                args.Player.SendErrorMessage("Arguement was not an integer or no Arguement! /PLACEHOLDER/");
-                housestyle = 1;
-
-            }
-            else housestyle = int.Parse(args.Parameters[0]);
-            // This is for testing purposes and should be removed in next build.
-            args.Player.SendMessage(Convert.ToString(housestyle), 189, 0, 15);
-
-
-            int tryX = args.Player.TileX;
-            int tryY = args.Player.TileY;
-            WorldGen.IslandHouse(tryX, tryY + 1, housestyle);
-            args.Player.SendSuccessMessage("Attempted to generate an Island House here.");
-            InformPlayers();
-        }
-        #endregion
-        #region GenFloatingIsland Command
-
-        private void DoIsland(CommandArgs args)
-        {
-            int tryX = args.Player.TileX;
-            int tryY = args.Player.TileY;
-            if (tryY <= 50)
-                tryY = 51;
-            WorldGen.CloudIsland(tryX, tryY);
-            args.Player.SendSuccessMessage("Attempted to generate a floating island at your position");
-            InformPlayers();
-        }
-        #endregion
-        #region GenCloudIsland Command
-        private void DoCloudIsland(CommandArgs args)
-        {
-            int tryX = args.Player.TileX;
-            int tryY = args.Player.TileY;
-            WorldGen.CloudIsland(tryX, tryY + 9);
-            WorldGen.IslandHouse(tryX, tryY + 1, 1);
-
-            args.Player.SendSuccessMessage("Attempted to generate an un-looted floating island at your position.");
-            InformPlayers();
-        }
-        #endregion
-        #region GenLivingTree Command (TODO)
-        // Needs revision, does not work for some reason
-        private void DoLivingTree(CommandArgs args)
-        {
-            int tryX = args.Player.TileX;
-            int tryY = args.Player.TileY;
-            WorldGen.GrowLivingTree(tryX, tryY);
-
-            args.Player.SendSuccessMessage("Attempted to grow a living tree at your position.");
-            InformPlayers();
-        }
-        #endregion
-
-        #region GenChests Command
-        private void DoChests(CommandArgs args)
-        {
-            if (args.Parameters.Count == 0 || args.Parameters.Count > 2)
-            {
-                args.Player.SendInfoMessage("Usage: /genchests <amount> [gen mode: default/easy/all]");
-            }
-            int empty = 0;
-            int tmpEmpty = 0;
-            int chests = 0;
-            int maxChests = 1000;
-
-            string setting = "default";
-            if (args.Parameters.Count > 1)
-            {
-                setting = args.Parameters[1];
-            }
-            const int maxtries = 100000;
-            Int32.TryParse(args.Parameters[0], out chests);
-            const int threshold = 100;
-            if (!config.UseInfiniteChests)
-            {
-                for (int x = 0; x < maxChests; x++)
-                {
-                    if (Main.chest[x] != null)
-                    {
-                        tmpEmpty++;
-                        bool found = false;
-                        foreach (Item itm in Main.chest[x].item)
-                            if (itm.netID != 0)
-                                found = true;
-                        if (found == false)
-                        {
-                            empty++;
-                            //      TShock.Utils.Broadcast(string.Format("Found chest {0} empty at x {1} y {2}", x, Main.chest[x].x,
-                            //                                           Main.chest[x].y));
-
-                            // destroying
-                            WorldGen.KillTile(Main.chest[x].x, Main.chest[x].y, false, false, false);
-                            Main.chest[x] = null;
-
-                        }
-
-                    }
-
-                }
-                args.Player.SendSuccessMessage("Uprooted {0} empty out of {1} chests.", empty, tmpEmpty);
-            }
-            else
-            {
-
-                try
-                {
-                    switch (TShock.Config.StorageType.ToLowerInvariant())
-                    {
-                        case "mysql":
-                            string[] host = TShock.Config.MySqlHost.Split(':');
-                            ChestDB = new MySqlConnection()
-                            {
-                                ConnectionString = string.Format("Server={0}; Port={1}; Database={2}; Uid={3}; Pwd={4};",
-                                    host[0],
-                                    host.Length == 1 ? "3306" : host[1],
-                                    TShock.Config.MySqlDbName,
-                                    TShock.Config.MySqlUsername,
-                                    TShock.Config.MySqlPassword)
-                            };
-                            break;
-                        case "sqlite":
-                            string sql = Path.Combine(TShock.SavePath, "chests.sqlite");
-                            ChestDB = new SqliteConnection(string.Format("uri=file://{0},Version=3", sql));
-                            break;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    TShock.Log.ConsoleError(ex.ToString());
-                }
-            }
-            if (chests + tmpEmpty + threshold > maxChests)
-                chests = maxChests - tmpEmpty - threshold;
-            if (chests > 0)
-            {
-                int chestcount = 0;
-                chestcount = tmpEmpty;
-                int tries = 0;
-                int newcount = 0;
-                while (newcount < chests)
-                {
-                    int contain;
-                    if (setting == "default")
-                    {
-                        // Moved item list into a separate .txt file
-                        int[] itemID = config.DefaultChestIDs;
-                        contain = itemID[WorldGen.genRand.Next(0, itemID.Length)];
-                    }
-                    else if (setting == "all")
-                    {
-                        // Updated item list to 1.2.4.1
-                        contain = WorldGen.genRand.Next(ItemList[0], ItemList.Last() + 1);
-                    }
-                    else if (setting == "easy")
-                    {
-                        contain = WorldGen.genRand.Next(-24, 364);
-                    }
-                    else
-                    {
-                        args.Player.SendWarningMessage("Warning! Typo in second argument: {0}", args.Parameters[1]);
-                        return;
-                    }
-                    int tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
-                    int tryY = WorldGen.genRand.Next((int)Main.worldSurface, Main.maxTilesY - 200);
-                    if (!config.GenInsideProtectedRegions && IsProtected(tryX, tryY))
-                        continue;
-                    while (!Main.tile[tryX, tryY].active())
-                    {
-                        tryY++;
-                    }
-                    tryY--;
-                    WorldGen.KillTile(tryX, tryY, false, false, false);
-                    WorldGen.KillTile(tryX + 1, tryY, false, false, false);
-                    WorldGen.KillTile(tryX, tryY + 1, false, false, false);
-                    WorldGen.KillTile(tryX + 1, tryY, false, false, false);
-
-                    if (WorldGen.AddBuriedChest(tryX, tryY, contain, true, 1))
-                    {
-                        chestcount++;
-                        newcount++;
-                        if (config.UseInfiniteChests)
-                        {
-
-                            StringBuilder items = new StringBuilder();
-                            Terraria.Chest c = Main.chest[0];
-                            if (c != null)
-                            {
-                                for (int j = 0; j < 40; j++)
-                                {
-                                    items.Append(c.item[j].netID + "," + c.item[j].stack + "," + c.item[j].prefix);
-                                    if (j != 39)
-                                    {
-                                        items.Append(",");
-                                    }
-                                }
-                                try
-                                {
-                                    ChestDB.Query("INSERT INTO Chests (X, Y, Account, Items, WorldID) VALUES (@0, @1, '', @2, @3)",
-                                            c.x, c.y, items.ToString(), Main.worldID);
-                                }
-                                catch (Exception ex)
-                                {
-                                    TShock.Log.ConsoleError(ex.ToString());
-                                }
-                                items.Clear();
-                                Main.chest[0] = null;
-                            }
-                        }
-
-                    }
-                    if (tries + 1 >= maxtries)
+                    case 1:
+                        tl = 38;
                         break;
-
-                    tries++;
+                    case 2:
+                        tl = 30;
+                        break;
+                    case 3:
+                        tl = 41;
+                        break;
+                    case 4:
+                        tl = 43;
+                        break;
+                    case 5:
+                        tl = 44;
+                        break;
+                    case 6:
+                        tl = 45;
+                        break;
+                    case 7:
+                        tl = 46;
+                        break;
+                    case 8:
+                        tl = 47;
+                        break;
+                    case 9:
+                        tl = 75;
+                        break;
+                    case 10:
+                        tl = 76;
+                        break;
+                    case 11:
+                        tl = 119;
+                        break;
+                    case 12:
+                        tl = 121;
+                        break;
+                    case 13:
+                        tl = 122;
+                        break;
                 }
-                if (config.UseInfiniteChests)
-                    ChestDB.Dispose();
-                args.Player.SendSuccessMessage("Generated {0} new chests - {1} total", newcount, chestcount);
+                a = WorldGen.genRand.Next(1, 16);
+                switch (a)
+                {
+                    case 1:
+                        wl = 4;
+                        break;
+                    case 2:
+                        wl = 5;
+                        break;
+                    case 3:
+                        wl = 6;
+                        break;
+                    case 4:
+                        wl = 10;
+                        break;
+                    case 5:
+                        wl = 11;
+                        break;
+                    case 6:
+                        wl = 12;
+                        break;
+                    case 7:
+                        wl = 17;
+                        break;
+                    case 8:
+                        wl = 18;
+                        break;
+                    case 9:
+                        wl = 19;
+                        break;
+                    case 10:
+                        wl = 20;
+                        break;
+                    case 11:
+                        wl = 21;
+                        break;
+                    case 12:
+                        wl = 23;
+                        break;
+                    case 13:
+                        wl = 24;
+                        break;
+                    case 14:
+                        wl = 25;
+                        break;
+                    case 15:
+                        wl = 26;
+                        break;
+                }
+
+                for (cx = start; cx < width + start; cx++)
+                {
+                    int xc;
+                    for (xc = ypos; xc < bottom; xc++)
+                    {
+                        if ((cx == start) || (cx == width + start - 1))
+                        {
+                            Main.tile[cx, xc].type = (byte)tl;
+                            Main.tile[cx, xc].active(true);
+                            Main.tile[cx, xc].slope(0);
+                            Main.tile[cx, xc].halfBrick(false);
+                        }
+                        else
+                        {
+                            WorldGen.KillTile(cx, xc, false, false, false);
+                            Main.tile[cx, xc].wall = (byte)wl;
+                        }
+                    }
+                }
+
+                InformPlayers();
+                args.Player.SendSuccessMessage("Going down?");
+            }
+            #endregion
+            
+            #region GenIslandHouse Command
+            private void DoIslandHouse(CommandArgs args)
+            {
+                int housestyle;
+                if ((!int.TryParse(args.Parameters[0], out housestyle) || args.Parameters[0] == null))
+                {
+                    args.Player.SendErrorMessage("Arguement was not an integer or no Arguement! /PLACEHOLDER/");
+                    housestyle = 1;
+
+                }
+                else housestyle = int.Parse(args.Parameters[0]);
+                // This is for testing purposes and should be removed in next build.
+                args.Player.SendMessage(Convert.ToString(housestyle), 189, 0, 15);
+
+
+                tryX = args.Player.TileX;
+                tryY = args.Player.TileY;
+                WorldGen.IslandHouse(tryX, tryY + 1, housestyle);
+                args.Player.SendSuccessMessage("Attempted to generate an Island House here.");
                 InformPlayers();
             }
-        }
-        #endregion
+            #endregion
+            #region GenFloatingIsland Command
 
+            private void DoIsland(CommandArgs args)
+            {
+                tryX = args.Player.TileX;
+                tryY = args.Player.TileY;
+                if (tryY <= 50)
+                    tryY = 51;
+                WorldGen.CloudIsland(tryX, tryY);
+                args.Player.SendSuccessMessage("Attempted to generate a floating island at your position");
+                InformPlayers();
+            }
+            #endregion
+            #region GenCloudIsland Command
+            private void DoCloudIsland(CommandArgs args)
+            {
+                tryX = args.Player.TileX;
+                tryY = args.Player.TileY;
+                WorldGen.CloudIsland(tryX, tryY + 9);
+                WorldGen.IslandHouse(tryX, tryY + 1, 1);
+
+                args.Player.SendSuccessMessage("Attempted to generate an un-looted floating island at your position.");
+                InformPlayers();
+            }
+            #endregion
+
+
+            #region GenChests Command
+            private void DoChests(CommandArgs args)
+            {
+                if (args.Parameters.Count == 0 || args.Parameters.Count > 2)
+                {
+                    args.Player.SendInfoMessage("Usage: /genchests <amount> [gen mode: default/easy/all]");
+                }
+                int empty = 0;
+                int tmpEmpty = 0;
+                int chests = 0;
+                int maxChests = 1000;
+
+                string setting = "default";
+                if (args.Parameters.Count > 1)
+                {
+                    setting = args.Parameters[1];
+                }
+                const int maxtries = 100000;
+                Int32.TryParse(args.Parameters[0], out chests);
+                const int threshold = 100;
+                if (!config.UseInfiniteChests)
+                {
+                    for (int x = 0; x < maxChests; x++)
+                    {
+                        if (Main.chest[x] != null)
+                        {
+                            tmpEmpty++;
+                            bool found = false;
+                            foreach (Item itm in Main.chest[x].item)
+                                if (itm.netID != 0)
+                                    found = true;
+                            if (found == false)
+                            {
+                                empty++;
+                                //      TShock.Utils.Broadcast(string.Format("Found chest {0} empty at x {1} y {2}", x, Main.chest[x].x,
+                                //                                           Main.chest[x].y));
+
+                                // destroying
+                                WorldGen.KillTile(Main.chest[x].x, Main.chest[x].y, false, false, false);
+                                Main.chest[x] = null;
+
+                            }
+
+                        }
+
+                    }
+                    args.Player.SendSuccessMessage("Uprooted {0} empty out of {1} chests.", empty, tmpEmpty);
+                }
+                else
+                {
+
+                    try
+                    {
+                        switch (TShock.Config.StorageType.ToLowerInvariant())
+                        {
+                            case "mysql":
+                                string[] host = TShock.Config.MySqlHost.Split(':');
+                                ChestDB = new MySqlConnection()
+                                {
+                                    ConnectionString = string.Format("Server={0}; Port={1}; Database={2}; Uid={3}; Pwd={4};",
+                                        host[0],
+                                        host.Length == 1 ? "3306" : host[1],
+                                        TShock.Config.MySqlDbName,
+                                        TShock.Config.MySqlUsername,
+                                        TShock.Config.MySqlPassword)
+                                };
+                                break;
+                            case "sqlite":
+                                string sql = Path.Combine(TShock.SavePath, "chests.sqlite");
+                                ChestDB = new SqliteConnection(string.Format("uri=file://{0},Version=3", sql));
+                                break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        TShock.Log.ConsoleError(ex.ToString());
+                    }
+                }
+                if (chests + tmpEmpty + threshold > maxChests)
+                    chests = maxChests - tmpEmpty - threshold;
+                if (chests > 0)
+                {
+                    int chestcount = 0;
+                    chestcount = tmpEmpty;
+                    int tries = 0;
+                    int newcount = 0;
+                    while (newcount < chests)
+                    {
+                        int contain;
+                        if (setting == "default")
+                        {
+                            // Moved item list into a separate .txt file
+                            int[] itemID = config.DefaultChestIDs;
+                            contain = itemID[WorldGen.genRand.Next(0, itemID.Length)];
+                        }
+                        else if (setting == "all")
+                        {
+                            // Updated item list to 1.2.4.1
+                            contain = WorldGen.genRand.Next(ItemList[0], ItemList.Last() + 1);
+                        }
+                        else if (setting == "easy")
+                        {
+                            contain = WorldGen.genRand.Next(-24, 364);
+                        }
+                        else
+                        {
+                            args.Player.SendWarningMessage("Warning! Typo in second argument: {0}", args.Parameters[1]);
+                            return;
+                        }
+                        tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
+                        tryY = WorldGen.genRand.Next((int)Main.worldSurface, Main.maxTilesY - 200);
+                        if (!config.GenInsideProtectedRegions && IsProtected(tryX, tryY))
+                            continue;
+                        while (!Main.tile[tryX, tryY].active())
+                        {
+                            tryY++;
+                        }
+                        tryY--;
+                        WorldGen.KillTile(tryX, tryY, false, false, false);
+                        WorldGen.KillTile(tryX + 1, tryY, false, false, false);
+                        WorldGen.KillTile(tryX, tryY + 1, false, false, false);
+                        WorldGen.KillTile(tryX + 1, tryY, false, false, false);
+
+                        if (WorldGen.AddBuriedChest(tryX, tryY, contain, true, 1))
+                        {
+                            chestcount++;
+                            newcount++;
+                            if (config.UseInfiniteChests)
+                            {
+
+                                StringBuilder items = new StringBuilder();
+                                Terraria.Chest c = Main.chest[0];
+                                if (c != null)
+                                {
+                                    for (int j = 0; j < 40; j++)
+                                    {
+                                        items.Append(c.item[j].netID + "," + c.item[j].stack + "," + c.item[j].prefix);
+                                        if (j != 39)
+                                        {
+                                            items.Append(",");
+                                        }
+                                    }
+                                    try
+                                    {
+                                        ChestDB.Query("INSERT INTO Chests (X, Y, Account, Items, WorldID) VALUES (@0, @1, '', @2, @3)",
+                                                c.x, c.y, items.ToString(), Main.worldID);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        TShock.Log.ConsoleError(ex.ToString());
+                                    }
+                                    items.Clear();
+                                    Main.chest[0] = null;
+                                }
+                            }
+
+                        }
+                        if (tries + 1 >= maxtries)
+                            break;
+
+                        tries++;
+                    }
+                    if (config.UseInfiniteChests)
+                        ChestDB.Dispose();
+                    args.Player.SendSuccessMessage("Generated {0} new chests - {1} total", newcount, chestcount);
+                    InformPlayers();
+                }
+            }
+            #endregion
+        */
         #region Utils
         #region InformPlayers
         //Updating all players Reloads Tile Sections
@@ -1931,6 +1984,11 @@ namespace WorldRefill
                     return true;
             }
             return false;
+        }
+        bool inWorld(int X, int Y)
+        {
+            if (X > 200 && X < Main.maxTilesX - 200 && Y > 150) return true;
+            else return false;
         }
         #endregion
         List<string> FindMatches(string search, List<string> List)

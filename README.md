@@ -1,4 +1,4 @@
-# 🛠️ World Refill - TShock Plugin 🛠️
+# World Refill - TShock Plugin 🛠️
 
 > World Refill Plugin by k0rd, IcyPhoenix and Enerdy (Updated by Illuminousity/Matheis)
  
@@ -27,6 +27,8 @@
 | shrooms | Spawns mushrooms in their respective biome |/gen shrooms (number of shrooms) |
 | trees | Spawns trees in the world |/gen trees |
 | dungeon | Spawns a dungeon in the world |/gen dungeon |
+| pyramid | Spawns a pyramid in the world |/gen pyramid |
+| minehouse | Spawns a minehouse in the world |/gen minehouse
 
 
  
@@ -97,10 +99,10 @@ the trap only to realize that the method itself did it for me :(
 
 Also some minor changes that mainly affect the clarity of the feedback to the user.
 * 2.0.1
-   * Statues are fundamentally changed, they now utilize Terraria's built-in statuelist meaning that even if terraria updates to add statues,
+	* Statues are fundamentally changed, they now utilize Terraria's built-in statuelist meaning that even if terraria updates to add statues,
 they will also be added to the list. the spawning of specific statues now uses a dictionary, and includes more statues.
 
-    *Ores have been implemented and refined - Chlorophyte now only spawns in the jungle and only replaces mud blocks
+	* Ores have been implemented and refined - Chlorophyte now only spawns in the jungle and only replaces mud blocks
 unnatural ores have been removed such as meteorite as that drops from meteors
 * 2.0.2
    * Structures have been added, these generate structures as opposed to resources
@@ -110,6 +112,21 @@ unnatural ores have been removed such as meteorite as that drops from meteors
    * Shrooms have been re-worked, now it spawns shroom variants in their respective biome
 
    * Dungeon has been added, this still has to be checked for bugs
+* 2.0.3
+	* Dungeon has been re-worked, it now only spawns when standing on a block and away from a world border!
+	
+	* Pyramid has been added, this uses the same validation as dungeon, didnt know whether to only make it work when standing on sand
+however i left it with any block as to give freedom to the user
+
+	* Minehouse has been added, this is a bit buggy so far, it needs work and chests do not spawn on it
+
+	* The barebones for Temple and Living trees are there, the problem with Temple is that it spawns the shape and the path but not traps, or objects in the temple.
+Living tree also needs to be looked at when i get time.
+
+
+
+	
+
 
 ## Contact Info
 
