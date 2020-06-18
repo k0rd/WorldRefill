@@ -28,8 +28,9 @@
 | trees | Spawns trees in the world |/gen trees |
 | dungeon | Spawns a dungeon in the world |/gen dungeon |
 | pyramid | Spawns a pyramid in the world |/gen pyramid |
-| minehouse | Spawns a minehouse in the world |/gen minehouse
-
+| minehouse | Spawns a minehouse in the world |/gen minehouse |
+| hellevator | Spawns a hellevator in the world |/gen hellevator |
+| world | Resets the World to its original state! | /gen world |
 
  
 ## References 💾
@@ -167,6 +168,8 @@ of the config has been moved to Config.cs.
 * Chests (will also be difficult lol)
 
 * Anything else that has been added to 1.4/ Suggestions from external testers?
+
+* World Regenerations do not affect region protected structures.
 
 
 ## Contact Info

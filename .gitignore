@@ -11,6 +11,6 @@
 */_ReSharper*/*
 *.user
 .vs/*
-*/obj/*
+WorldRefill/obj/*
 *.txt
-*/Debug/*
+WorldRefill/bin/Debug/
