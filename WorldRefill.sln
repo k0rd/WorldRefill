@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30204.135
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldRefill", "WorldRefill\WorldRefill.csproj", "{9542C5A5-D8ED-40AA-82E1-5F06D3E022EC}"
 EndProject
 Global
@@ -9,12 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9542C5A5-D8ED-40AA-82E1-5F06D3E022EC}.Debug|Any CPU.ActiveCfg = Release|Any CPU
-		{9542C5A5-D8ED-40AA-82E1-5F06D3E022EC}.Debug|Any CPU.Build.0 = Release|Any CPU
+		{9542C5A5-D8ED-40AA-82E1-5F06D3E022EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9542C5A5-D8ED-40AA-82E1-5F06D3E022EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9542C5A5-D8ED-40AA-82E1-5F06D3E022EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9542C5A5-D8ED-40AA-82E1-5F06D3E022EC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {35BDFFCA-14A9-4B11-A18F-D5BF13208313}
 	EndGlobalSection
 EndGlobal

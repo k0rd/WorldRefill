@@ -5,10 +5,7 @@ using OTAPI.Tile;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
 using System.Linq;
-using System.Net.Mail;
-using System.Text;
 using System.Text.RegularExpressions;
 using Terraria;
 using Terraria.DataStructures;
@@ -20,6 +17,12 @@ using TShockAPI;
 using TShockAPI.DB;
 using TShockAPI.Hooks;
 using TShockAPI.Net;
+using Terraria.GameContent.Biomes;
+using Terraria.WorldBuilding;
+using System.Security.Cryptography;
+using Terraria.GameContent.Generation;
+using System.Threading.Tasks;
+
 
 namespace WorldRefill
 {
@@ -50,8 +53,8 @@ namespace WorldRefill
         }
 
 
-        private static string savepath = TShock.SavePath;
-        private static Config config;
+
+
         private IDbConnection ChestDB;
         #endregion
 
@@ -75,7 +78,7 @@ namespace WorldRefill
             #endregion
             #endregion
 
-            ReadConfig();
+            Config.ReadConfig();
 
             GeneralHooks.ReloadEvent += OnReload;
 
@@ -98,70 +101,14 @@ namespace WorldRefill
 
 
         #region Config
-        // Config Code stolen from InanZed's DieMob
-        #region Create
-        private static void CreateConfig()
-        {
-            string filepath = Path.Combine(savepath, "WorldRefillConfig.json");
-            try
-            {
-                using (var stream = new FileStream(filepath, FileMode.Create, FileAccess.Write, FileShare.Write))
-                {
-                    using (var sr = new StreamWriter(stream))
-                    {
-                        config = new Config();
-                        var configString = JsonConvert.SerializeObject(config, Formatting.Indented);
-                        sr.Write(configString);
-                    }
-                    stream.Close();
-                }
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.ConsoleError(ex.Message);
-                config = new Config();
-            }
-        }
-        #endregion
-        #region Read
-        private static bool ReadConfig()
-        {
-            string filepath = Path.Combine(savepath, "WorldRefillConfig.json");
-            try
-            {
-                if (File.Exists(filepath))
-                {
-                    using (var stream = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                    {
-                        using (var sr = new StreamReader(stream))
-                        {
-                            var configString = sr.ReadToEnd();
-                            config = JsonConvert.DeserializeObject<Config>(configString);
-                        }
-                        stream.Close();
-                    }
-                    return true;
-                }
-                else
-                {
-                    TShock.Log.ConsoleError("World Refill config not found. Creating new one...");
-                    CreateConfig();
-                    return false;
-                }
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.ConsoleError(ex.Message);
-            }
-            return false;
-        }
+
         #endregion
         #region Reload Command
         // Config Reload
-        private void OnReload(ReloadEventArgs args)
+        private async void OnReload(ReloadEventArgs args)
         {
-            if (ReadConfig())
-                args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] {Name} config reloaded.");
+            if (await Task.Run(() => Config.ReadConfig()))
+                args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] {Name} Config reloaded.");
 
             else
                 args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Error reading config. Check log for details.");
@@ -169,73 +116,8 @@ namespace WorldRefill
         }
         #endregion
 
-        class Config
-        {
-            // Variables to be added to WorldRefillConfig.json | Moved default chest IDs here so that people can edit them
-            #region DefaultChestIDs
-            public int[] DefaultChestIDs = new[]
-            {
-                168,
-                20,
-                22,
-                40,
-                42,
-                28,
-                292,
-                298,
-                299,
-                290,
-                8,
-                31,
-                72,
-                280,
-                284,
-                281,
-                282,
-                279,
-                285,
-                21,
-                289,
-                303,
-                291,
-                304,
-                49,
-                50,
-                52,
-                53,
-                54,
-                55,
-                51,
-                43,
-                167,
-                188,
-                295,
-                302,
-                305,
-                73,
-                301,
-                159,
-                65,
-                158,
-                117,
-                265,
-                294,
-                288,
-                297,
-                300,
-                218,
-                112,
-                220,
-                985,
-                267,
-                156
-            };
-            #endregion
-            public bool UseInfiniteChests = false;
-            public bool GenInsideProtectedRegions = false;
-            public int GenerationMaxTries = 1000000; // Setting this value higher may result in more lag when generating as this is the maximum amount of tries it will take to generate amenities.
-        }
-        #endregion
+
+
         #region Case Options
 
 
@@ -266,29 +148,35 @@ namespace WorldRefill
             //"temple"
             //"livingtree"
             "pyramid",
-            "minehouse"
+            "minehouse",
+            "hellevator",
+            "world",
+            "test"
+
 
 
 
 
         };
-        private void PrintOptions(CommandArgs args)
+        private async void PrintOptions(CommandArgs args)
         {
-            string options = "";
-            string structs = "";
-            args.Player.SendErrorMessage("Resources:");
-            foreach (string option in optionslist)
+            await Task.Run(() =>
             {
-                options += $"| {option} | ";
-            }
-            args.Player.SendErrorMessage(options);
-            args.Player.SendErrorMessage("Structures:");
-            foreach (string structure in structslist)
-            {
-                structs += $"| {structure} | ";
-            }
-            args.Player.SendErrorMessage(structs);
-
+                string options = "";
+                string structs = "";
+                args.Player.SendErrorMessage("Resources:");
+                foreach (string option in optionslist)
+                {
+                    options += $"| {option} | ";
+                }
+                args.Player.SendErrorMessage(options);
+                args.Player.SendErrorMessage("Structures:");
+                foreach (string structure in structslist)
+                {
+                    structs += $"| {structure} | ";
+                }
+                args.Player.SendErrorMessage(structs);
+            });
 
         }
 
@@ -296,7 +184,7 @@ namespace WorldRefill
 
 
         #region Generate Command
-        private void Generate(CommandArgs args)
+        private async void Generate(CommandArgs args)
 
         {
             if (args.Parameters.Count < 1)
@@ -307,8 +195,8 @@ namespace WorldRefill
 
                 return;
             }
-            int amount;
-            if (args.Parameters.Count == 1 && structslist.Contains(args.Parameters[0].ToLowerInvariant()))
+            short amount;
+            if (structslist.Contains(args.Parameters[0].ToLowerInvariant()))
             {
                 amount = 0;
 
@@ -318,16 +206,18 @@ namespace WorldRefill
 
 
 
-                var amountregex = new Regex(@"\b(?<amount>[1-9]\d*){1}$");
+                var amountregex = new Regex(@"\b(?<amount>[1-9]\d*){1,5}$");
                 Match amountmatch;
                 try
                 {
+
                     amountmatch = amountregex.Match(args.Parameters[1]);
                 }
                 catch (ArgumentOutOfRangeException)
                 {
                     amountmatch = amountregex.Match("0");
                 }
+
 
 
                 if (!amountmatch.Success || float.Parse(args.Parameters[1]) < 1)
@@ -356,17 +246,28 @@ namespace WorldRefill
                     }
                     return;
                 }
-                amount = int.Parse(amountmatch.Value);
+
+                try
+                {
+                    amount = Int16.Parse(amountmatch.Value);
+                }
+                catch (OverflowException)
+                {
+                    amount = Int16.MaxValue;
+                }
+
             }
 
-            var surface = Main.worldSurface;
-            var trycount = 0;
+
+
             //maxtries = retry amounts if generation of object fails (this is used to prevent lag issues)
-            int maxtries = config.GenerationMaxTries;
-            //realcount = actual amount of objects generated
-            var realcount = 0;
+
+            int realcount;
             int tryX;
             int tryY;
+            //realcount = actual amount of objects generated
+
+
             List<string> lines;
 
 
@@ -378,16 +279,9 @@ namespace WorldRefill
 
 
                     //Attempting to generate Objects
-                    while (trycount < maxtries)
-                    {
-                        if (WorldGen.AddLifeCrystal(WorldGen.genRand.Next(1, Main.maxTilesX), WorldGen.genRand.Next((int)(surface + 20.0), (int)(Main.maxTilesY - 100.0))))
-                        {
-                            realcount++;
-                            //Determine if enough Objects have been generated
-                            if (realcount == amount) break;
-                        }
-                        trycount++;
-                    }
+                    realcount = await Task.Run(() => Regen.AsyncGenLifeCrystals(amount));
+
+
                     //Notify user on success
                     args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Life Crystals");
                     if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Life Crystals", 71, 8, 185); InformPlayers();
@@ -402,82 +296,19 @@ namespace WorldRefill
                 case "pots":
 
 
+                    realcount = await Task.Run(() => Regen.AsyncGenPots(amount));
 
-                    while (trycount < maxtries)
-                    {
-                        tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
-
-                        tryY = WorldGen.genRand.Next((int)Main.worldSurface - 5, Main.maxTilesY - 20);
-
-
-                        // This code was stolen from Terraria source, so dont blame me because it doesn't look neat haha.
-
-                        int tile = (int)Main.tile[tryX, tryY + 1].type;
-                        int wall = (int)Main.tile[tryX, tryY].wall;
-                        int style = WorldGen.genRand.Next(0, 4);
-                        if (tile == 147 || tile == 161 || tile == 162)
-                            style = WorldGen.genRand.Next(4, 7);
-                        if (tile == 60)
-                            style = WorldGen.genRand.Next(7, 10);
-                        if (Main.wallDungeon[(int)Main.tile[tryX, tryY].wall])
-                            style = WorldGen.genRand.Next(10, 13);
-                        if (tile == 41 || tile == 43 || (tile == 44 || tile == 481) || (tile == 482 || tile == 483))
-                            style = WorldGen.genRand.Next(10, 13);
-                        if (tile == 22 || tile == 23 || tile == 25)
-                            style = WorldGen.genRand.Next(16, 19);
-                        if (tile == 199 || tile == 203 || (tile == 204 || tile == 200))
-                            style = WorldGen.genRand.Next(22, 25);
-                        if (tile == 367)
-                            style = WorldGen.genRand.Next(31, 34);
-                        if (tile == 226)
-                            style = WorldGen.genRand.Next(28, 31);
-                        if (wall == 187 || wall == 216)
-                            style = WorldGen.genRand.Next(34, 37);
-                        if (tryY > Main.UnderworldLayer)
-                            style = WorldGen.genRand.Next(13, 16);
-
-
-                        if (!WorldGen.oceanDepths(tryX, tryY) && WorldGen.PlacePot(tryX, tryY, 28, (int)style))
-                        {
-
-
-                            realcount++;
-                            if (realcount == amount)
-                                break;
-
-                        }
-                        trycount++;
-
-                    }
                     args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Pots.");
-                    if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Pots.", 71, 8, 185); InformPlayers();
+                    if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Pots.", 71, 8, 185);
+                    InformPlayers();
                     break;
 
                 #endregion
                 #region Orbs
                 case "orbs":
 
-                    while (trycount < maxtries)
-                    {
-                        tryX = WorldGen.genRand.Next(50, Main.maxTilesX - 50);
-                        tryY = WorldGen.genRand.Next((int)surface + 20, Main.UnderworldLayer);
+                    realcount = await Task.Run(() => Regen.AsyncGenerateOrbs(amount));
 
-                        if ((!Main.tile[tryX, tryY].active()) && ((Main.tile[tryX, tryY].wall == WallID.EbonstoneUnsafe) || (Main.tile[tryX, tryY].wall == WallID.CrimstoneUnsafe)))
-                        {
-                            WorldGen.AddShadowOrb(tryX, tryY);
-
-                            if (Main.tile[tryX, tryY].type == 31)
-                            {
-
-                                realcount++;
-                                if (realcount == amount)
-                                    break;
-                            }
-                        }
-                        trycount++;
-
-
-                    }
                     InformPlayers();
                     if (!WorldGen.crimson)
                     {
@@ -497,29 +328,8 @@ namespace WorldRefill
                 #region Altars
                 case "altars":
 
+                    realcount = await Task.Run(() => Regen.AsyncGenerateAltars(amount));
 
-                    while (trycount < maxtries)
-                    {
-                        tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
-                        tryY = WorldGen.genRand.Next((int)surface + 10, (int)Main.rockLayer);
-
-                        if ((!Main.tile[tryX, tryY].active()) && ((Main.tile[tryX, tryY].wall == WallID.EbonstoneUnsafe) || (Main.tile[tryX, tryY].wall == WallID.CrimstoneUnsafe)))
-                        {
-
-                            if (!WorldGen.crimson) WorldGen.Place3x2(tryX, tryY, TileID.DemonAltar);
-                            else WorldGen.Place3x2(tryX, tryY, TileID.DemonAltar, 1);
-
-
-                            if (Main.tile[tryX, tryY].type == 26)
-                            {
-
-                                realcount++;
-                                if (realcount == amount)
-                                    break;
-                            }
-                        }
-                        trycount++;
-                    }
                     InformPlayers();
                     if (!WorldGen.crimson)
                     {
@@ -538,22 +348,8 @@ namespace WorldRefill
                 #endregion
                 #region Cave Traps
                 case "cavetraps":
-
-
-                    while (trycount < maxtries)
-                    {
-                        tryX = WorldGen.genRand.Next(200, Main.maxTilesX - 200);
-                        tryY = WorldGen.genRand.Next((int)surface, Main.UnderworldLayer - 100);
-                        var type = WorldGen.genRand.Next(-1, 1);
-                        if (Main.tile[tryX, tryY].wall == WallID.None && WorldGen.placeTrap(tryX, tryY, type))
-                        {
-                            realcount++;
-                            if (realcount == amount)
-                                break;
-                        }
-
-                        trycount++;
-                    }
+                    
+                    realcount = await Task.Run(() => Regen.AsyncGenerateCavetraps(amount));
                     InformPlayers();
                     args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Randomized Cave Traps.");
                     if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Randomized Cave Traps.", 71, 8, 185);
@@ -565,25 +361,7 @@ namespace WorldRefill
                 #region Temple Traps
                 case "templetraps":
 
-
-                    while (trycount < maxtries)
-
-                    {
-                        tryX = WorldGen.genRand.Next(250, Main.maxTilesX - 250);
-                        tryY = WorldGen.genRand.Next((int)surface, Main.UnderworldLayer);
-
-
-                        if (WorldGen.mayanTrap(tryX, tryY))
-                        {
-                            realcount++;
-                            if (realcount == amount) break;
-                        }
-
-
-
-                        trycount++;
-
-                    }
+                    realcount = await Task.Run(() => Regen.AsyncGenerateTempletraps(amount));
                     InformPlayers();
                     args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Randomized Temple Traps.");
                     if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Randomized Temple Traps.", 71, 8, 185);
@@ -594,27 +372,8 @@ namespace WorldRefill
                 #region Statue Traps
                 case "statuetraps":
 
+                    realcount = await Task.Run(() => Regen.AsyncGenerateStatuetraps(amount));
 
-                    while (trycount < maxtries)
-
-                    {
-                        tryX = WorldGen.genRand.Next(11, Main.maxTilesX - 11);
-                        tryY = WorldGen.genRand.Next((int)surface, Main.UnderworldLayer);
-
-                        WorldGen.PlaceStatueTrap(tryX, tryY);
-
-                        if ((int)Main.tile[tryX, tryY].type == TileID.Statues)
-                        {
-
-                            realcount++;
-                            if (realcount == amount) break;
-                        }
-
-
-
-                        trycount++;
-
-                    }
                     InformPlayers();
                     args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Randomized Statue Traps.");
                     TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Randomized Statue Traps.", 71, 8, 185);
@@ -626,28 +385,7 @@ namespace WorldRefill
                 case "lavatraps":
 
 
-
-                    while (trycount < maxtries)
-
-                    {
-                        tryX = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
-                        tryY = WorldGen.genRand.Next(750, Main.UnderworldLayer);
-
-
-
-
-                        if (WorldGen.placeLavaTrap(tryX, tryY))
-                        {
-
-                            realcount++;
-                            if (realcount == amount) break;
-                        }
-
-
-
-                        trycount++;
-
-                    }
+                    realcount = await Task.Run(() => Regen.AsyncGenerateLavatraps(amount));
                     InformPlayers();
                     args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Lava Traps.");
                     if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Lava Traps.", 71, 8, 185); break;
@@ -657,27 +395,7 @@ namespace WorldRefill
                 case "sandtraps":
 
 
-                    while (trycount < maxtries)
-
-                    {
-                        tryX = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
-                        tryY = WorldGen.genRand.Next((int)surface, Main.UnderworldLayer);
-
-
-
-
-                        if (WorldGen.PlaceSandTrap(tryX, tryY))
-                        {
-                            args.Player.SendInfoMessage($"POS X {tryX}, POS Y {tryY}");
-                            realcount++;
-                            if (realcount == amount) break;
-                        }
-
-
-
-                        trycount++;
-
-                    }
+                    realcount = await Task.Run(() => Regen.AsyncGenerateSandtraps(amount));
                     InformPlayers();
                     args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Sand Traps.");
                     if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Sand Traps.", 71, 8, 185);
@@ -699,100 +417,11 @@ namespace WorldRefill
 
 
 
-                    bool isinNonNaturalPlace(ushort tile)
-                    {
-                        List<ushort> bannedtile = new List<ushort>
-                        {
-                            19,
-                            41,
-                            43,
-                            44,
-                            225,
-                            226,
-                            481,
-                            482,
-                            483
 
-
-                        };
-                        if (bannedtile.Contains(tile))
-                        {
-
-
-                            return true;
-                        }
-                        else
-                        {
-
-
-                            return false;
-                        }
-
-
-                    }
-                    bool tileValidation(int X, int Y)
-                    {
-                        int xoffset;
-                        int yoffset;
-
-                        if (Main.tile[X, Y].honey() || Main.tile[X, Y].lava() || (!Main.tile[X, Y + 1].active()) || (!Main.tile[X + 1, Y + 1].active()) || !Main.tileSolid[Main.tile[X, Y + 1].type] || !Main.tileSolid[Main.tile[X + 1, Y + 1].type]) return false;
-
-                        for (xoffset = 0; xoffset < 2; xoffset++)
-                        {
-                            for (yoffset = 0; yoffset < 3; yoffset++)
-                            {
-
-
-                                if (Main.tile[X + xoffset, Y - yoffset].active()) return false;
-
-
-
-                            }
-                        }
-                        return true;
-                    }
 
                     if (args.Parameters.Count == 2)
                     {
-                        while (trycount < maxtries)
-                        {
-                            var tryType = WorldGen.genRand.Next(0, WorldGen.statueList.Count() - 1);
-
-                            tryX = WorldGen.genRand.Next(30, Main.maxTilesX - 30);
-                            tryY = WorldGen.genRand.Next((int)surface + 20, Main.UnderworldLayer);
-                            var statue = WorldGen.statueList[tryType];
-
-
-
-
-
-
-                            while (!tileValidation(tryX, tryY))
-                            {
-                                tryY++;
-                                if (tryY >= Main.UnderworldLayer)
-                                {
-                                    break;
-                                }
-                            }
-
-                            if (tryY < Main.UnderworldLayer && (!isinNonNaturalPlace(Main.tile[tryX, tryY + 1].type)))
-                            {
-
-
-
-                                WorldGen.PlaceTile(tryX, tryY, statue.X, true, true, -1, statue.Y);
-
-                                if (Main.tile[tryX, tryY].type == statue.X)
-                                {
-
-                                    realcount++;
-                                    if (realcount == amount)
-                                        break;
-                                }
-                            }
-                            trycount++;
-                        }
+                        realcount = await Task.Run(() => Regen.AsyncGenerateRandStatues(amount));
                         InformPlayers();
                         args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Statues.");
                         if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Statues.", 71, 8, 185);
@@ -903,10 +532,10 @@ namespace WorldRefill
 
 
 
-
+                        
                         string selStatue = args.Parameters[2].ToLowerInvariant();
                         stlist = statues.Keys.ToList<string>();
-                        var findStatue = FindMatches(selStatue, stlist);
+                        var findStatue = ITileValidation.FindMatches(selStatue, stlist);
 
 
                         if (findStatue.Count > 1)
@@ -927,35 +556,7 @@ namespace WorldRefill
                         else
                         {
                             statues.TryGetValue(findStatue[0], out Point16 statue);
-                            while (trycount < maxtries)
-                            {
-                                tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
-                                tryY = WorldGen.genRand.Next((int)surface + 20, Main.UnderworldLayer);
-
-                                while (!tileValidation(tryX, tryY))
-                                {
-                                    tryY++;
-                                    if (tryY >= Main.UnderworldLayer)
-                                    {
-                                        break;
-                                    }
-                                }
-                                if (tryY < Main.UnderworldLayer && (!isinNonNaturalPlace(Main.tile[tryX, tryY + 1].type)))
-                                {
-
-                                    WorldGen.PlaceTile(tryX, tryY, statue.X, true, true, -1, statue.Y);
-
-                                    if (Main.tile[tryX, tryY].type == statue.X)
-                                    {
-
-                                        realcount++;
-                                        if (realcount == amount)
-                                            break;
-                                    }
-                                }
-                                trycount++;
-
-                            }
+                            realcount = await Task.Run(() => Regen.AsyncGenerateStatues(amount, statue.X, statue.Y));
                             InformPlayers();
                             args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} {findStatue[0]} Statues.");
                             if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} {findStatue[0]} Statues.", 71, 8, 185);
@@ -971,11 +572,7 @@ namespace WorldRefill
 
 
                     ushort oreID;
-                    int oreTier;
-                    int minFrequency;
-                    int maxFrequency;
-                    int minSpread;
-                    int maxSpread;
+
                     List<ushort[]> oreTiers = new List<ushort[]> {
                         new ushort[] {TileID.Copper,TileID.Tin, TileID.Iron, TileID.Lead },
                         new ushort[] {TileID.Silver, TileID.Tungsten, TileID.Gold, TileID.Platinum,TileID.Sapphire,TileID.Ruby,TileID.Topaz,TileID.Emerald,TileID.Amethyst,TileID.Diamond},
@@ -989,38 +586,7 @@ namespace WorldRefill
 
                     };
 
-                    int GetTier(ushort ore)
-                    {
-                        int i = 1;
-                        foreach (ushort[] tiers in oreTiers)
-                        {
-                            if (tiers.Contains(ore)) return i;
-                            i++;
-                        }
 
-                        return 0;
-                    };
-
-                    bool TileValidation(ITile tile, ushort ore)
-                    {
-                        List<ushort> JungleWalls = new List<ushort>
-                        {
-                            0,
-                            WallID.Jungle,
-                            WallID.Jungle1Echo,
-                            WallID.Jungle2Echo,
-                            WallID.Jungle3Echo,
-                            WallID.Jungle4Echo,
-                            WallID.JungleUnsafe,
-                            WallID.JungleUnsafe1,
-                            WallID.JungleUnsafe2,
-                            WallID.JungleUnsafe3,
-                            WallID.JungleUnsafe4,
-                        };
-                        if (ore != TileID.Chlorophyte) return true;
-                        if (tile.type == TileID.Mud && ore == TileID.Chlorophyte && JungleWalls.Contains(tile.wall)) return true;
-                        else return false;
-                    };
 
                     Dictionary<string, ushort> ores = new Dictionary<string, ushort>
                     {
@@ -1059,124 +625,13 @@ namespace WorldRefill
 
                     if (args.Parameters.Count == 2)
                     {
-                        List<ushort> totalores = ores.Values.ToList<ushort>();
-
-
-
-                        amount = Math.Min(amount, 10000);
 
 
 
 
-                        while (trycount < maxtries)
-                        {
-
-                            int X = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
-                            double maxY = Main.maxTilesY;
-                            double minY = Main.worldSurface;
-                            var trytype = WorldGen.genRand.Next(0, totalores.Count - 1);
-                            oreID = totalores[trytype];
-                            if (WorldGen.crimson && oreID == TileID.Demonite) oreID = TileID.Crimtane; //If randomly generated ore, make the ore world specific.
-
-                            oreTier = GetTier(oreID);
-
-                            switch (oreTier)
-                            {
-
-                                case 1:
-                                    maxY = Main.rockLayer;
-                                    minY = surface;
-                                    minFrequency = 5;
-                                    minSpread = 5;
-                                    maxFrequency = 8;
-                                    maxSpread = 8;
-
-                                    break;
-                                case 2:
-                                    maxY = 2 * Main.rockLayer;
-                                    minY = Main.rockLayer;
-                                    minFrequency = 4;
-                                    minSpread = 4;
-                                    maxFrequency = 6;
-                                    maxSpread = 6;
-                                    break;
-                                case 3:
-                                    maxY = Main.UnderworldLayer;
-                                    minY = (3 / 2) * Main.rockLayer;
-                                    minFrequency = 2;
-                                    minSpread = 2;
-                                    maxFrequency = 2;
-                                    maxSpread = 4;
-                                    break;
-                                case 4:
-                                    maxY = Main.maxTilesY;
-                                    minY = Main.UnderworldLayer + 20;
-                                    minFrequency = 4;
-                                    minSpread = 4;
-                                    maxFrequency = 9;
-                                    maxSpread = 9;
-                                    break;
 
 
-                                case 5:
-                                    minY = Main.rockLayer;
-                                    maxY = Main.rockLayer * 2;
-                                    minFrequency = 5;
-                                    minSpread = 5;
-                                    maxFrequency = 9;
-                                    maxSpread = 9;
-                                    break;
-                                case 6:
-                                    minY = Main.rockLayer * (3 / 2);
-                                    maxY = Main.UnderworldLayer;
-                                    minFrequency = 4;
-                                    minSpread = 4;
-                                    maxFrequency = 7;
-                                    maxSpread = 7;
-                                    break;
-                                case 7:
-                                    minY = Main.rockLayer * (5 / 2);
-                                    maxY = Main.UnderworldLayer;
-                                    minFrequency = 3;
-                                    minSpread = 3;
-                                    maxFrequency = 5;
-                                    maxSpread = 5;
-                                    break;
-                                case 8:
-                                    minY = Main.rockLayer;
-                                    maxY = Main.UnderworldLayer;
-                                    minFrequency = 5;
-                                    minSpread = 5;
-                                    maxFrequency = 9;
-                                    maxSpread = 9;
-                                    break;
-                                default:
-                                    maxY = Main.rockLayer;
-                                    minFrequency = 5;
-                                    minSpread = 9;
-                                    maxFrequency = 5;
-                                    maxSpread = 9;
-                                    break;
-
-
-                            }
-
-                            //Gets random number based on minimum spawn point to maximum depth of map
-                            int Y = WorldGen.genRand.Next((int)minY, (int)maxY);
-                            if (TileValidation(Main.tile[X, Y], oreID))
-                            {
-                                WorldGen.OreRunner(X, Y, (double)WorldGen.genRand.Next(minSpread, maxSpread), WorldGen.genRand.Next(minFrequency, maxFrequency), oreID);
-
-
-                                if (Main.tile[X, Y].type == oreID)
-                                {
-
-                                    realcount++;
-                                    if (realcount == amount) break;
-                                }
-                            }
-                            trycount++;
-                        }
+                        realcount = await Task.Run(() => Regen.AsyncGenerateRandOres(amount, oreTiers, ores));
 
                         InformPlayers();
                         args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} randomized ores.");
@@ -1190,7 +645,7 @@ namespace WorldRefill
                     {
                         var selore = args.Parameters[2].ToLowerInvariant();
                         var searchlist = ores.Keys.ToList();
-                        var findore = FindMatches(selore, searchlist);
+                        var findore = ITileValidation.FindMatches(selore, searchlist);
 
 
                         if (findore.Count > 1)
@@ -1218,117 +673,7 @@ namespace WorldRefill
 
 
 
-                            amount = Math.Min(amount, 10000);
-
-                            //oreGened = track amount of ores generated already
-                            double maxY = Main.maxTilesY;
-                            double minY = Main.worldSurface + 50;
-                            //Rare Ores  - Adamantite (Titanium), Demonite, Diamond, Chlorophyte
-                            oreTier = GetTier(oreID);
-
-                            switch (oreTier)
-                            {
-
-                                case 1:
-                                    maxY = Main.rockLayer + 100;
-                                    minY = surface;
-                                    minFrequency = 5;
-                                    minSpread = 5;
-                                    maxFrequency = 8;
-                                    maxSpread = 8;
-
-                                    break;
-                                case 2:
-                                    maxY = 2 * Main.rockLayer;
-                                    minY = Main.rockLayer;
-                                    minFrequency = 4;
-                                    minSpread = 4;
-                                    maxFrequency = 6;
-                                    maxSpread = 6;
-                                    break;
-                                case 3:
-                                    maxY = Main.UnderworldLayer;
-                                    minY = (3 / 2) * Main.rockLayer;
-                                    minFrequency = 2;
-                                    minSpread = 2;
-                                    maxFrequency = 2;
-                                    maxSpread = 4;
-                                    break;
-                                case 4:
-                                    maxY = Main.maxTilesY;
-                                    minY = Main.UnderworldLayer + 20;
-                                    minFrequency = 4;
-                                    minSpread = 4;
-                                    maxFrequency = 9;
-                                    maxSpread = 9;
-                                    break;
-
-
-                                case 5:
-                                    minY = Main.rockLayer;
-                                    maxY = Main.rockLayer * 2;
-                                    minFrequency = 5;
-                                    minSpread = 5;
-                                    maxFrequency = 9;
-                                    maxSpread = 9;
-                                    break;
-                                case 6:
-                                    minY = Main.rockLayer * (3 / 2);
-                                    maxY = Main.UnderworldLayer;
-                                    minFrequency = 4;
-                                    minSpread = 4;
-                                    maxFrequency = 7;
-                                    maxSpread = 7;
-                                    break;
-                                case 7:
-                                    minY = Main.rockLayer * (5 / 2);
-                                    maxY = Main.UnderworldLayer;
-                                    minFrequency = 3;
-                                    minSpread = 3;
-                                    maxFrequency = 5;
-                                    maxSpread = 5;
-                                    break;
-                                case 8:
-                                    minY = Main.rockLayer;
-                                    maxY = Main.UnderworldLayer;
-                                    minFrequency = 5;
-                                    minSpread = 5;
-                                    maxFrequency = 9;
-                                    maxSpread = 9;
-                                    break;
-                                default:
-                                    maxY = Main.rockLayer;
-                                    minFrequency = 5;
-                                    minSpread = 9;
-                                    maxFrequency = 5;
-                                    maxSpread = 9;
-                                    break;
-                            }
-
-                            while ((float)trycount < maxtries)
-                            {
-                                //Get random number from 100 tiles each side
-                                int X = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
-                                //Gets random number based on minimum spawn point to maximum depth of map
-                                int Y = WorldGen.genRand.Next((int)minY, (int)maxY);
-
-                                if (TileValidation(Main.tile[X, Y], oreID))
-                                {
-
-                                    WorldGen.OreRunner(X, Y, (double)WorldGen.genRand.Next(minSpread, maxSpread), WorldGen.genRand.Next(minFrequency, maxFrequency), oreID);
-
-
-                                    if (Main.tile[X, Y].type == oreID)
-                                    {
-
-                                        realcount++;
-                                        if (realcount == amount) break;
-                                    }
-
-
-                                }
-                                trycount++;
-                            }
+                            realcount = await Task.Run(() => Regen.AsyncGenerateOre(amount, oreID, oreTiers));
 
                             InformPlayers();
                             args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} {findore[0]} ores.");
@@ -1347,40 +692,7 @@ namespace WorldRefill
                             WallID.SpiderUnsafe
                         };
 
-
-                    while (trycount < maxtries)
-                    {
-                        tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
-                        tryY = WorldGen.genRand.Next(50, Main.UnderworldLayer);
-                        int direction = WorldGen.genRand.Next(2);
-                        if (direction == 0)
-                        {
-                            direction = -1;
-                        }
-                        else
-                        {
-                            direction = 1;
-                        }
-
-                        while (!SpiderWalls.Contains(Main.tile[tryX, tryY].wall))
-                        {
-                            tryY++;
-                            if (tryY >= Main.UnderworldLayer) break;
-                        }
-
-
-                        if ((tryY < Main.UnderworldLayer) && (tryY > 50))
-                        {
-
-                            WorldGen.TileRunner(tryX, tryY, (double)WorldGen.genRand.Next(4, 11), WorldGen.genRand.Next(2, 4), 51, true, (float)direction, -1f, false, false);
-                            args.Player.SendInfoMessage($"POS X:{tryX}, POS Y:{tryY}");
-                            realcount++;
-                            if (realcount == amount)
-                                break;
-                        }
-                        trycount++;
-
-                    }
+                    realcount = await Task.Run(() => Regen.AsyncGenerateWebs(amount, SpiderWalls));
 
                     InformPlayers();
                     args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} webs.");
@@ -1392,24 +704,8 @@ namespace WorldRefill
                 #endregion
                 #region Trees
                 case "trees":
-                    var counter = 0;
-                    while ((double)counter < (double)Main.maxTilesX * 0.003)
-                    {
-                        tryX = WorldGen.genRand.Next(50, Main.maxTilesX - 50);
-                        tryY = WorldGen.genRand.Next(25, 50);
-                        for (var tick = tryX - tryY; tick < tryX + tryY; tick++)
-                        {
-                            var offset = 20;
-                            while ((double)offset < Main.worldSurface)
-                            {
-                                WorldGen.GrowEpicTree(tick, offset);
-                                offset++;
-                            }
-                        }
-                        counter++;
-                    }
-                    WorldGen.AddTrees();
 
+                    await Task.Run(() => Regen.AsyncGenerateTrees());
                     InformPlayers();
                     args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated trees on the surface!.");
                     TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated trees on the surface!", 71, 8, 185);
@@ -1419,51 +715,13 @@ namespace WorldRefill
                 #region Shrooms
                 case "shrooms":
 
-                    List<ushort> GetShroom(ITile tile)
-                    {
-                        if (tile.type == TileID.Grass) return new List<ushort> { TileID.Plants, 21, 144 };
-                        else if (tile.type == TileID.CorruptGrass) return new List<ushort> { TileID.CorruptPlants, 8, 144 };
-                        else if (tile.type == TileID.CrimsonGrass) return new List<ushort> { TileID.CrimsonPlants, 15, 270 };
-                        else if (tile.type == TileID.MushroomGrass) return new List<ushort> { TileID.MushroomPlants, 0, (ushort)tile.frameX };
-                        else return null;
-
-                    };
-
-                    List<ushort> shroom;
-
-                    ITile blockbelow;
 
 
-                    while (trycount < maxtries)
-                    {
-                        tryX = WorldGen.genRand.Next(200, Main.maxTilesX - 200);
-                        tryY = WorldGen.genRand.Next((int)Main.worldSurface - 150, Main.UnderworldLayer);
-
-                        blockbelow = Main.tile[tryX, tryY + 1];
-                        shroom = GetShroom(blockbelow);
-
-                        while (shroom == null)
-                        {
-                            tryY--;
-                            blockbelow = Main.tile[tryX, tryY + 1];
-                            shroom = GetShroom(blockbelow);
-                            if (tryY < Main.worldSurface - 50) break;
-                        }
-                        if (shroom != null && !Main.tile[tryX, tryY].active())
-                        {
 
 
-                            WorldGen.PlaceTile(tryX, tryY, shroom[0], false, true, -1, shroom[1]);
-                            Main.tile[tryX, tryY].frameX = (short)shroom[2];
-                            if (Main.tile[tryX, tryY].type == shroom[0])
-                            {
 
-                                realcount++;
-                                if (realcount == amount) break;
-                            }
-                        }
-                        trycount++;
-                    }
+
+                    realcount = await Task.Run(() => Regen.AsyncGenerateShrooms(amount));
 
                     InformPlayers();
                     args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} mushrooms in their biomes!");
@@ -1478,9 +736,10 @@ namespace WorldRefill
                     tryX = args.Player.TileX; //Gets X tile from the right of the character
                     tryY = args.Player.TileY; //Gets Y Tile from the head tile of the character
 
-                    if ((Main.tile[tryX, tryY + 3].active() || Main.tile[tryX + 1, tryY + 3].active()) && inWorld(tryX, tryY)) // checks if player is standing on tile and the dungeon is not by the world border
+
+                    if (ITileValidation.inWorld(tryX, tryY) && ITileValidation.onSurface(tryX, tryY)) // checks if player is standing on tile and the dungeon is not by the world border
                     {
-                        WorldGen.MakeDungeon(tryX, tryY);
+                        await Task.Run(() => WorldGen.MakeDungeon(tryX, tryY));
                         InformPlayers();
                         args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated a Dungeon at your location!");
                         TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated a Dungeon in the world!", 71, 8, 185);
@@ -1488,7 +747,7 @@ namespace WorldRefill
                     }
                     else
                     {
-                        args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Failed to create a Dungeon at this location! You have to be standing on a block and away from the edges of the world!");
+                        args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Failed to create a Dungeon at this location! You have to be standing on the surface and away from the edges of the world!");
 
                     }
                     break;
@@ -1525,8 +784,8 @@ namespace WorldRefill
                     tryY = args.Player.TileY;
 
 
-                    if ((Main.tile[tryX, tryY + 3].active() || Main.tile[tryX + 1, tryY + 3].active()) && inWorld(tryX, tryY))
-                        if (WorldGen.Pyramid(tryX, tryY))
+                    if (ITileValidation.inWorld(tryX, tryY) && ITileValidation.onSurface(tryX, tryY))
+                        if (await Task.Run(() => WorldGen.Pyramid(tryX, tryY)))
                         {
                             InformPlayers();
                             args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] A Pyramid was Successfully Generated.");
@@ -1538,20 +797,22 @@ namespace WorldRefill
                         }
                     else
                     {
-                        args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Failed to create a pyramid at this location! You have to be standing on a block and away from the edges of the world!");
+                        args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Failed to create a Pyramid at this location! You have to be standing on the surface and away from the edges of the world!");
 
                     }
-                    break;
 
+
+                    break;
+                #endregion
                 #region Minehouse
                 case "minehouse":
 
                     tryX = args.Player.TileX;
                     tryY = args.Player.TileY;
-                    if (tryY > Main.worldSurface && tryY < Main.UnderworldLayer && inWorld(tryX,tryY))
+                    if (tryY > Main.worldSurface && tryY < Main.UnderworldLayer && ITileValidation.inWorld(tryX, tryY))
                     {
-                        WorldGen.MineHouse(tryX, tryY);
-                        
+                        await Task.Run(() => WorldGen.MineHouse(tryX, tryY));
+
                         InformPlayers();
                         args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] A Minehouse was Successfully Generated.");
                         TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated a Minehouse in the world!", 71, 8, 185);
@@ -1561,12 +822,94 @@ namespace WorldRefill
                     {
                         args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Failed to create a Minehouse at this location! You have to be in the cavern layer and not near the world border!");
                     }
-                    
+
                     break;
 
                 #endregion
+                #region Hellevator
+                case "hellevator":
+
+                    List<ushort> trees = new List<ushort>
+                    {
+                        TileID.Trees,
+                        TileID.TreeAmber,
+                        TileID.TreeAmethyst,
+                        TileID.TreeDiamond,
+                        TileID.TreeEmerald,
+                        TileID.TreeRuby,
+                        TileID.TreeSapphire,
+                        TileID.TreeTopaz,
+                        TileID.MushroomTrees,
+                        TileID.PalmTree,
+                        TileID.VanityTreeYellowWillow,
+                        TileID.VanityTreeSakura
+                    };
+                    int posX = args.Player.TileX;
+                    int posY = args.Player.TileY;
+
+                    if (ITileValidation.onSurface(posX, posY) && ITileValidation.inWorld(posX, posY))
+                    {
+                        await Task.Run(() => Regen.AsyncGenerateHellevator(args, posX, posY, trees));
+                        InformPlayers();
+                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] A Hellevator was Successfully Generated.");
+                        TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated a Hellevator at X: [c/BCFF00:{posX}], Y: [c/BCFF00:{posY}] !", 71, 8, 185);
+                    }
+
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Failed to create a Hellevator at this location! You have to be standing on the surface and away from the edges of the world!");
+                    break;
+                #endregion
+                #region World
+                case "world":
+
+                    if (args.Parameters.Count < 2)
+                    {
+                        args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] This will delete the world and replace it with a new one are you sure?");
+                        args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] To confirm please put /gen world true");
+                        break;
+                    }
+                    bool confirm = bool.Parse(args.Parameters[1].ToLowerInvariant());
+
+
+
+                    if (confirm == false)
+                    {
+                        args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] This will delete the world and replace it with a new one are you sure?");
+                        args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] To confirm please put /gen world true");
+                    }
+                    else
+                    {
+
+                        args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] This one may take a while to load. Please wait... DO NOT DROP ANY ITEMS");
+
+                        await Task.Run(() =>
+                         {
+                             WorldGen.clearWorld();
+                             WorldGen.GenerateWorld(WorldGen._lastSeed);
+
+
+
+                         });
+                        InformPlayers();
+                        foreach (TSPlayer plr in TShock.Players)
+                        {
+                            if (plr != null && Main.tile[plr.TileX, plr.TileY].active())
+                            {
+                                plr.Teleport(Main.spawnTileX * 16, (Main.spawnTileY * 16) - 48);
+                            }
+
+                        }
+                    }
+
+                    break;
+
+
 
                 #endregion
+                case "test":
+                    args.Player.SendInfoMessage($"SURFACE :{Main.worldSurface}, CAVERN:{Main.rockLayer}, HELL:{Main.UnderworldLayer}");
+                    break;
+
+
                 #region Default case
                 default:
                     args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Please refer to the following options...");
@@ -1590,146 +933,7 @@ namespace WorldRefill
 
         /*
 
-            #region Hellevator Command
-            private void DoHV(CommandArgs args)
-            {
-                int meX = args.Player.TileX;
-                int meY = args.Player.TileY;
-                const int maxsize = 25;
-                const int bump = 4;
-                int cx;
-                int ypos = 0;
-                int start = 0;
-
-                int bottom = Main.maxTilesY - 150;
-                int width = 3;
-                if (args.Parameters.Count == 1)
-                    width = Int32.Parse(args.Parameters[0]);
-                if (width < 2) width = 2;
-                if (width > maxsize) width = maxsize;
-                start = meX - (width / 2);
-                ypos = meY + bump;
-                start--;
-                width++;
-                int tl = 121;
-                int wl = 25;
-                int a = WorldGen.genRand.Next(1, 14);
-                switch (a)
-                {
-                    case 1:
-                        tl = 38;
-                        break;
-                    case 2:
-                        tl = 30;
-                        break;
-                    case 3:
-                        tl = 41;
-                        break;
-                    case 4:
-                        tl = 43;
-                        break;
-                    case 5:
-                        tl = 44;
-                        break;
-                    case 6:
-                        tl = 45;
-                        break;
-                    case 7:
-                        tl = 46;
-                        break;
-                    case 8:
-                        tl = 47;
-                        break;
-                    case 9:
-                        tl = 75;
-                        break;
-                    case 10:
-                        tl = 76;
-                        break;
-                    case 11:
-                        tl = 119;
-                        break;
-                    case 12:
-                        tl = 121;
-                        break;
-                    case 13:
-                        tl = 122;
-                        break;
-                }
-                a = WorldGen.genRand.Next(1, 16);
-                switch (a)
-                {
-                    case 1:
-                        wl = 4;
-                        break;
-                    case 2:
-                        wl = 5;
-                        break;
-                    case 3:
-                        wl = 6;
-                        break;
-                    case 4:
-                        wl = 10;
-                        break;
-                    case 5:
-                        wl = 11;
-                        break;
-                    case 6:
-                        wl = 12;
-                        break;
-                    case 7:
-                        wl = 17;
-                        break;
-                    case 8:
-                        wl = 18;
-                        break;
-                    case 9:
-                        wl = 19;
-                        break;
-                    case 10:
-                        wl = 20;
-                        break;
-                    case 11:
-                        wl = 21;
-                        break;
-                    case 12:
-                        wl = 23;
-                        break;
-                    case 13:
-                        wl = 24;
-                        break;
-                    case 14:
-                        wl = 25;
-                        break;
-                    case 15:
-                        wl = 26;
-                        break;
-                }
-
-                for (cx = start; cx < width + start; cx++)
-                {
-                    int xc;
-                    for (xc = ypos; xc < bottom; xc++)
-                    {
-                        if ((cx == start) || (cx == width + start - 1))
-                        {
-                            Main.tile[cx, xc].type = (byte)tl;
-                            Main.tile[cx, xc].active(true);
-                            Main.tile[cx, xc].slope(0);
-                            Main.tile[cx, xc].halfBrick(false);
-                        }
-                        else
-                        {
-                            WorldGen.KillTile(cx, xc, false, false, false);
-                            Main.tile[cx, xc].wall = (byte)wl;
-                        }
-                    }
-                }
-
-                InformPlayers();
-                args.Player.SendSuccessMessage("Going down?");
-            }
-            #endregion
+           
             
             #region GenIslandHouse Command
             private void DoIslandHouse(CommandArgs args)
@@ -1985,34 +1189,8 @@ namespace WorldRefill
             }
             return false;
         }
-        bool inWorld(int X, int Y)
-        {
-            if (X > 200 && X < Main.maxTilesX - 200 && Y > 150) return true;
-            else return false;
-        }
+
         #endregion
-        List<string> FindMatches(string search, List<string> List)
-        {
-            var found = new List<string> { };
-
-            if (search == null) return found;
-            foreach (string find in List)
-            {
-                if (find != null)
-                {
-                    if (search == find)
-                    {
-
-                        return new List<string> { find };
-
-                    }
-                    if (find.ToLower().StartsWith(search)) found.Add(find);
-
-                }
-
-            }
-            return found;
-        }
         private List<int> ItemList
         {
             get

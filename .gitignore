@@ -1,0 +1,16 @@
+
+# Visual Studio #
+##################################
+*.userprefs
+*.suo
+*.sdf
+*.opensdf
+*.cache
+*.pdb
+*.csproj.user
+*/_ReSharper*/*
+*.user
+.vs/*
+*/obj/*
+*.txt
+*/Debug/*

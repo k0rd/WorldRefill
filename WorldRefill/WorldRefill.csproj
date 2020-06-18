@@ -68,6 +68,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdvancedRegen.cs" />
+    <Compile Include="ITileValidation.cs" />
+    <Compile Include="Config.cs" />
+    <Compile Include="Regen.cs" />
     <Compile Include="WorldRefill.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

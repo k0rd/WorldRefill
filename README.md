@@ -51,6 +51,8 @@ Pots now actually generate their biome variants, no longer do we have the defaul
 
 Input validation has been implemented - checks are now in place to make sure that strings and 0/negative integers stay away! go away :(
 
+Reloading of the config will now take place when using /reload instead of using /genreload
+
 the old trap generation used to just generate geysers, we now have a random number implemented so that it will switch between the various 
 cave traps!
 
@@ -75,9 +77,13 @@ unnatural ores have been removed such as meteorite as that drops from meteors
 
 
 
+
+
 ## Release History ⌚
 
 * 2.0
+
+   * Reloading of the config will now take place when using /reload instead of using /genreload
    
    * Using a switch statement instead of a command for each possible generation, makes things look alot neater :)
 
@@ -123,9 +129,44 @@ however i left it with any block as to give freedom to the user
 	* The barebones for Temple and Living trees are there, the problem with Temple is that it spawns the shape and the path but not traps, or objects in the temple.
 Living tree also needs to be looked at when i get time.
 
+* 2.0.4
+	* Dungeon and Pyramid now use a more accurate and refined method to calculate whether the player is on the surface of the world!
 
+	* Hellevator has been added, this has been re-worked, there is now a fixed width and it now accurately calculates the position of hell.
+
+* 2.1
+	* We have gone asynchronous! This comes with huge performance improvements and less lag!
+
+	* World has been added, this is still in a developmental state, spamming this command will lead to a crash this is due to terraria trying to re-generate the world multiple times
+
+	* World resets the world to the seed of the world.
+
+	* A limit to amount of 32767 has been implemented, this is because of world limitations and how much "stuff" a world can hold.
+
+	* Code has been split up, generation functions have been moved to Regen.cs and Validations that were used have been moved to Validation.cs and the Creation and Reading
+of the config has been moved to Config.cs.
 
 	
+
+
+## To Fix
+
+* input values of 999999999999999999999999999999999999, this causes a parsing issue crash.
+
+* spamming world causing a crash, solution to this is either to create a pop and push stack for a queue type solution or use Task.handled.
+
+
+## To Implement
+
+* Floating Islands
+
+* Temple (this one will be difficult)
+
+* Living Trees (will also be difficult)
+
+* Chests (will also be difficult lol)
+
+* Anything else that has been added to 1.4/ Suggestions from external testers?
 
 
 ## Contact Info
