@@ -22,7 +22,13 @@ using Terraria.WorldBuilding;
 using System.Security.Cryptography;
 using Terraria.GameContent.Generation;
 using System.Threading.Tasks;
-
+using OTAPI;
+using System.Diagnostics.Eventing.Reader;
+using System.Diagnostics.Tracing;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Net;
+using ReLogic.Threading;
 
 namespace WorldRefill
 {
@@ -37,7 +43,7 @@ namespace WorldRefill
         #region Plugin Info
         public override Version Version
         {
-            get { return new Version(2, 0, 0); }
+            get { return new Version(2, 1, 0); }
         }
         public override string Name
         {
@@ -54,8 +60,11 @@ namespace WorldRefill
 
 
 
-
+        public static bool isTaskRunning { get; set; }
+        public static int realcount { get; set; }
         private IDbConnection ChestDB;
+
+
         #endregion
 
         #region Initialize
@@ -84,6 +93,8 @@ namespace WorldRefill
 
 
 
+
+
         }
         #endregion
 
@@ -100,32 +111,35 @@ namespace WorldRefill
 
 
 
-        #region Config
 
-        #endregion
         #region Reload Command
         // Config Reload
         private async void OnReload(ReloadEventArgs args)
         {
             if (await Task.Run(() => Config.ReadConfig()))
-                args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] {Name} Config reloaded.");
+                if (!args.Player.Active) args.Player.SendSuccessMessage($"[{Name}] {Name} Config reloaded.");
+
+                else args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] {Name} Config reloaded.");
 
             else
-                args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Error reading config. Check log for details.");
+                 if (!args.Player.Active) args.Player.SendErrorMessage($"[{Name}] Error reading config. Check log for details.");
+
+            else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Error reading config. Check log for details.");
+
             return;
         }
         #endregion
 
 
 
-        #region Case Options
+
 
 
 
 
         readonly IReadOnlyList<string> optionslist = new List<string>
             {
-               "crystals",
+            "crystals",
                 "pots",
                 "orbs",
                 "altars",
@@ -150,8 +164,9 @@ namespace WorldRefill
             "pyramid",
             "minehouse",
             "hellevator",
+            "island",
             "world",
-            "test"
+
 
 
 
@@ -185,8 +200,8 @@ namespace WorldRefill
 
         #region Generate Command
         private async void Generate(CommandArgs args)
-
         {
+
             if (args.Parameters.Count < 1)
             {
                 args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! " +
@@ -195,6 +210,7 @@ namespace WorldRefill
 
                 return;
             }
+
             short amount;
             if (structslist.Contains(args.Parameters[0].ToLowerInvariant()))
             {
@@ -206,7 +222,8 @@ namespace WorldRefill
 
 
 
-                var amountregex = new Regex(@"\b(?<amount>[1-9]\d*){1,5}$");
+
+                var amountregex = new Regex(@"\b(?<amount>[1-9]\d*){1}$");
                 Match amountmatch;
                 try
                 {
@@ -220,7 +237,7 @@ namespace WorldRefill
 
 
 
-                if (!amountmatch.Success || float.Parse(args.Parameters[1]) < 1)
+                if (!amountmatch.Success || double.Parse(args.Parameters[1]) < 1)
                 {
                     bool found = false;
                     foreach (string option in optionslist)
@@ -262,7 +279,7 @@ namespace WorldRefill
 
             //maxtries = retry amounts if generation of object fails (this is used to prevent lag issues)
 
-            int realcount;
+
             int tryX;
             int tryY;
             //realcount = actual amount of objects generated
@@ -270,7 +287,7 @@ namespace WorldRefill
 
             List<string> lines;
 
-
+            #region Case Options
             switch (args.Parameters[0].ToLowerInvariant())
             {
                 #region Life Crystals
@@ -279,15 +296,25 @@ namespace WorldRefill
 
 
                     //Attempting to generate Objects
-                    realcount = await Task.Run(() => Regen.AsyncGenLifeCrystals(amount));
 
 
-                    //Notify user on success
-                    args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Life Crystals");
-                    if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Life Crystals", 71, 8, 185); InformPlayers();
+                    if (!isTaskRunning)
+                    {
+
+
+                        await Regen.AsyncGenLifeCrystals(amount);
+
+
+
+                        //Notify user on success
+
+                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Life Crystals");
+                        if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid [c/BCFF00:{realcount}] Life Crystals", 71, 8, 185); InformPlayers();
+
+                    }
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
+
                     break;
-
-
 
 
 
@@ -295,31 +322,58 @@ namespace WorldRefill
                 #region Pots
                 case "pots":
 
+                    if (!isTaskRunning)
+                    {
 
-                    realcount = await Task.Run(() => Regen.AsyncGenPots(amount));
 
-                    args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Pots.");
-                    if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Pots.", 71, 8, 185);
-                    InformPlayers();
+                        await Regen.AsyncGenPots(amount);
+
+
+
+                        //Notify user on success
+
+                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Pots.");
+                        if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid [c/BCFF00:{realcount}] Pots.", 71, 8, 185);
+                        InformPlayers();
+
+                    }
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
+
                     break;
+
+
 
                 #endregion
                 #region Orbs
                 case "orbs":
 
-                    realcount = await Task.Run(() => Regen.AsyncGenerateOrbs(amount));
 
-                    InformPlayers();
-                    if (!WorldGen.crimson)
+
+                    if (!isTaskRunning)
                     {
-                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Shadow Orbs.");
-                        if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Shadow Orbs.", 71, 8, 185);
+
+
+                        await Regen.AsyncGenerateOrbs(amount);
+
+
+
+                        //Notify user on success
+
+                        if (!WorldGen.crimson)
+                        {
+                            args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Shadow Orbs.");
+                            if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid [c/BCFF00:{realcount}] Shadow Orbs.", 71, 8, 185);
+                        }
+                        else
+                        {
+                            args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Crimson Hearts.");
+                            if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid [c/BCFF00:{realcount}] Crimson Hearts.", 71, 8, 185);
+                        }
+                        InformPlayers();
+
                     }
-                    else
-                    {
-                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Crimson Hearts.");
-                        if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Crimson Hearts.", 71, 8, 185);
-                    }
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
+
                     break;
 
 
@@ -328,19 +382,34 @@ namespace WorldRefill
                 #region Altars
                 case "altars":
 
-                    realcount = await Task.Run(() => Regen.AsyncGenerateAltars(amount));
 
-                    InformPlayers();
-                    if (!WorldGen.crimson)
+
+
+                    if (!isTaskRunning)
                     {
-                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Demon Altars.");
-                        if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Demon Altars.", 71, 8, 185);
+
+
+                        await Regen.AsyncGenerateAltars(amount);
+
+
+
+                        //Notify user on success
+
+                        if (!WorldGen.crimson)
+                        {
+                            args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Demon Altars.");
+                            if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid [c/BCFF00:{realcount}] Demon Altars.", 71, 8, 185);
+                        }
+                        else
+                        {
+                            args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Crimson Altars.");
+                            if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid [c/BCFF00:{realcount}] Crimson Altars.", 71, 8, 185);
+                        }
+                        InformPlayers();
+
                     }
-                    else
-                    {
-                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Crimson Altars.");
-                        if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Crimson Altars.", 71, 8, 185);
-                    }
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
+
 
                     break;
 
@@ -348,11 +417,24 @@ namespace WorldRefill
                 #endregion
                 #region Cave Traps
                 case "cavetraps":
-                    
-                    realcount = await Task.Run(() => Regen.AsyncGenerateCavetraps(amount));
-                    InformPlayers();
-                    args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Randomized Cave Traps.");
-                    if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Randomized Cave Traps.", 71, 8, 185);
+
+
+                    if (!isTaskRunning)
+                    {
+
+
+                        await Regen.AsyncGenerateCavetraps(amount);
+
+
+
+                        //Notify user on success
+
+                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Randomized Cave Traps.");
+                        if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid [c/BCFF00:{realcount}] Randomized Cave Traps.", 71, 8, 185);
+                        InformPlayers();
+
+                    }
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
                     break;
 
 
@@ -361,22 +443,48 @@ namespace WorldRefill
                 #region Temple Traps
                 case "templetraps":
 
-                    realcount = await Task.Run(() => Regen.AsyncGenerateTempletraps(amount));
-                    InformPlayers();
-                    args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Randomized Temple Traps.");
-                    if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Randomized Temple Traps.", 71, 8, 185);
+                    if (!isTaskRunning)
+                    {
+
+
+                        await Regen.AsyncGenerateTempletraps(amount);
+
+
+
+                        //Notify user on success
+
+                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Randomized Temple Traps.");
+                        if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid [c/BCFF00:{realcount}] Randomized Temple Traps.", 71, 8, 185);
+                        InformPlayers();
+
+                    }
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
                     break;
+
+
 
 
                 #endregion
                 #region Statue Traps
                 case "statuetraps":
 
-                    realcount = await Task.Run(() => Regen.AsyncGenerateStatuetraps(amount));
+                    if (!isTaskRunning)
+                    {
 
-                    InformPlayers();
-                    args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Randomized Statue Traps.");
-                    TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Randomized Statue Traps.", 71, 8, 185);
+
+                        await Regen.AsyncGenerateStatuetraps(amount);
+
+
+
+                        //Notify user on success
+
+                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Randomized Statue Traps.");
+                        TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid [c/BCFF00:{realcount}] Randomized Statue Traps.", 71, 8, 185);
+                        InformPlayers();
+
+                    }
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
+
                     break;
 
 
@@ -385,20 +493,45 @@ namespace WorldRefill
                 case "lavatraps":
 
 
-                    realcount = await Task.Run(() => Regen.AsyncGenerateLavatraps(amount));
-                    InformPlayers();
-                    args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Lava Traps.");
-                    if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Lava Traps.", 71, 8, 185); break;
+                    if (!isTaskRunning)
+                    {
+
+
+                        await Regen.AsyncGenerateLavatraps(amount);
+
+
+
+                        //Notify user on success
+
+                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Lava Traps.");
+                        if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid [c/BCFF00:{realcount}] Lava Traps.", 71, 8, 185);
+                        InformPlayers();
+
+                    }
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
+                    break;
 
                 #endregion
                 #region Sand Traps
                 case "sandtraps":
 
 
-                    realcount = await Task.Run(() => Regen.AsyncGenerateSandtraps(amount));
-                    InformPlayers();
-                    args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Sand Traps.");
-                    if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Sand Traps.", 71, 8, 185);
+                    if (!isTaskRunning)
+                    {
+
+
+                        await Regen.AsyncGenerateSandtraps(amount);
+
+
+
+                        //Notify user on success
+
+                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Sand Traps.");
+                        if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid [c/BCFF00:{realcount}] Sand Traps.", 71, 8, 185);
+                        InformPlayers();
+
+                    }
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
 
                     break;
 
@@ -406,33 +539,40 @@ namespace WorldRefill
                 #endregion
                 #region Statues
                 case "statues":
-
-                    WorldGen.SetupStatueList();
-
-                    List<Point16> statuelist = WorldGen.statueList.ToList(); //re-writing statuelist to include turtle and owl statues.
-                    statuelist.Add(new Point16(TileID.Statues, 76));
-                    statuelist.Add(new Point16(TileID.Statues, 79));
-                    statuelist.Add(new Point16(TileID.BoulderStatue, 0));
-                    WorldGen.statueList = statuelist.ToArray();
-
-
-
-
-
-                    if (args.Parameters.Count == 2)
-                    {
-                        realcount = await Task.Run(() => Regen.AsyncGenerateRandStatues(amount));
-                        InformPlayers();
-                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Statues.");
-                        if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} Statues.", 71, 8, 185);
-                        break;
-                    }
-
-                    else
+                    if (!isTaskRunning)
                     {
 
-                        int stindex = 0;
-                        List<string> stlist = new List<string>
+
+                        WorldGen.SetupStatueList();
+
+                        List<Point16> statuelist = WorldGen.statueList.ToList(); //re-writing statuelist to include turtle and owl statues.
+                        statuelist.Add(new Point16(TileID.Statues, 76));
+                        statuelist.Add(new Point16(TileID.Statues, 79));
+                        statuelist.Add(new Point16(TileID.BoulderStatue, 0));
+                        WorldGen.statueList = statuelist.ToArray();
+
+
+
+
+
+                        if (args.Parameters.Count == 2)
+                        {
+
+                            await Regen.AsyncGenerateRandStatues(amount);
+
+                            //Notify user on success
+
+                            args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Statues.");
+                            if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid [c/BCFF00:{realcount}] Statues.", 71, 8, 185);
+                            InformPlayers();
+
+                        }
+
+                        else
+                        {
+
+                            int stindex = 0;
+                            List<string> stlist = new List<string>
                         {
                             "armor",
                             "angel",
@@ -506,74 +646,88 @@ namespace WorldRefill
 
 
                     };
-                        if (Main.expertMode)
-                        {
-                            stlist.Add("bone skeleton");
-                            stlist.Add("armed zombie");
+                            if (Main.expertMode)
+                            {
+                                stlist.Add("bone skeleton");
+                                stlist.Add("armed zombie");
+                            }
+                            stlist.Add("owl"); // These have to be added afterwards because of the way the statuelist array is generated, because i have implemented the owl and turtle statues myself they have to be added after the 
+                                               // the initialization
+                            stlist.Add("turtle");
+                            stlist.Add("boulder");
+                            Dictionary<string, Point16> statues = new Dictionary<string, Point16>();
+                            foreach (Point16 statue in WorldGen.statueList)
+                            {
+
+                                statues.Add(stlist[stindex], statue);
+
+
+                                stindex++;
+
+                            }
+
+
+
+
+
+
+
+
+                            string selStatue = args.Parameters[2].ToLowerInvariant();
+                            stlist = statues.Keys.ToList<string>();
+                            var findStatue = TileValidation.FindMatches(selStatue, stlist);
+
+
+                            if (findStatue.Count > 1)
+                            {
+                                args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] More than one match found: ");
+
+                                lines = PaginationTools.BuildLinesFromTerms(findStatue.ToArray());
+                                lines.ForEach(args.Player.SendInfoMessage);
+                            }
+                            else if (findStatue.Count < 1)
+                            {
+                                args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] No matches found for statue '{selStatue}'");
+                                args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] Full list of statues :");
+
+                                lines = PaginationTools.BuildLinesFromTerms(stlist.ToArray());
+                                lines.ForEach(args.Player.SendInfoMessage);
+                            }
+                            else
+                            {
+                                statues.TryGetValue(findStatue[0], out Point16 statue);
+
+
+                                await (Regen.AsyncGenerateStatues(amount, statue.X, statue.Y));
+
+                                //Notify user on success
+
+                                args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} {findStatue[0]} Statues.");
+                                if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid [c/BCFF00:{realcount}] {findStatue[0]} Statues.", 71, 8, 185);
+                                InformPlayers();
+
+
+
+
+
+
+
+                            }
+
                         }
-                        stlist.Add("owl"); // These have to be added afterwards because of the way the statuelist array is generated, because i have implemented the owl and turtle statues myself they have to be added after the 
-                        // the initialization
-                        stlist.Add("turtle");
-                        stlist.Add("boulder");
-                        Dictionary<string, Point16> statues = new Dictionary<string, Point16>();
-                        foreach (Point16 statue in WorldGen.statueList)
-                        {
-
-                            statues.Add(stlist[stindex], statue);
-
-
-                            stindex++;
-
-                        }
-
-
-
-
-
-
-
-                        
-                        string selStatue = args.Parameters[2].ToLowerInvariant();
-                        stlist = statues.Keys.ToList<string>();
-                        var findStatue = ITileValidation.FindMatches(selStatue, stlist);
-
-
-                        if (findStatue.Count > 1)
-                        {
-                            args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] More than one match found: ");
-
-                            lines = PaginationTools.BuildLinesFromTerms(findStatue.ToArray());
-                            lines.ForEach(args.Player.SendInfoMessage);
-                        }
-                        else if (findStatue.Count < 1)
-                        {
-                            args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] No matches found for statue '{selStatue}'");
-                            args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] Full list of statues :");
-
-                            lines = PaginationTools.BuildLinesFromTerms(stlist.ToArray());
-                            lines.ForEach(args.Player.SendInfoMessage);
-                        }
-                        else
-                        {
-                            statues.TryGetValue(findStatue[0], out Point16 statue);
-                            realcount = await Task.Run(() => Regen.AsyncGenerateStatues(amount, statue.X, statue.Y));
-                            InformPlayers();
-                            args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} {findStatue[0]} Statues.");
-                            if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} {findStatue[0]} Statues.", 71, 8, 185);
-
-                        }
-
                     }
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
                     break;
 
                 #endregion
                 #region Ores
                 case "ores":
+                    if (!isTaskRunning)
+                    {
 
+                        ushort oreID;
 
-                    ushort oreID;
-
-                    List<ushort[]> oreTiers = new List<ushort[]> {
+                        List<ushort[]> oreTiers = new List<ushort[]> {
                         new ushort[] {TileID.Copper,TileID.Tin, TileID.Iron, TileID.Lead },
                         new ushort[] {TileID.Silver, TileID.Tungsten, TileID.Gold, TileID.Platinum,TileID.Sapphire,TileID.Ruby,TileID.Topaz,TileID.Emerald,TileID.Amethyst,TileID.Diamond},
                         new ushort[] {TileID.Demonite, TileID.Crimtane},
@@ -588,115 +742,143 @@ namespace WorldRefill
 
 
 
-                    Dictionary<string, ushort> ores = new Dictionary<string, ushort>
-                    {
-                        ["cobalt"] = TileID.Cobalt,
-                        ["mythril"] = TileID.Mythril,
-                        ["copper"] = TileID.Copper,
-                        ["iron"] = TileID.Iron,
-                        ["silver"] = TileID.Silver,
-                        ["gold"] = TileID.Gold,
-                        ["demonite"] = TileID.Demonite,
-                        ["sapphire"] = TileID.Sapphire,
-                        ["ruby"] = TileID.Ruby,
-                        ["emerald"] = TileID.Emerald,
-                        ["topaz"] = TileID.Topaz,
-                        ["amethyst"] = TileID.Amethyst,
-                        ["diamond"] = TileID.Diamond,
-                        ["adamantite"] = TileID.Adamantite,
-                        ["hellstone"] = TileID.Hellstone,
-                        ["tin"] = TileID.Tin,
-                        ["lead"] = TileID.Lead,
-                        ["tungsten"] = TileID.Tungsten,
-                        ["platinum"] = TileID.Platinum,
-                        ["crimtane"] = TileID.Crimtane,
-                        ["palladium"] = TileID.Palladium,
-                        ["orichalcum"] = TileID.Orichalcum,
-                        ["titanium"] = TileID.Titanium,
-                        ["chlorophyte"] = TileID.Chlorophyte,
-                        ["stone"] = TileID.Stone,
-                        ["sand"] = TileID.Sand,
-                        ["silt"] = TileID.Silt,
-
-
-
-                    };
-                    if (amount > 1000) args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] This one may take a while to load. Please wait...");
-
-                    if (args.Parameters.Count == 2)
-                    {
-
-
-
-
-
-
-                        realcount = await Task.Run(() => Regen.AsyncGenerateRandOres(amount, oreTiers, ores));
-
-                        InformPlayers();
-                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} randomized ores.");
-                        if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} randomized ores.", 71, 8, 185);
-                        break;
-                    }
-
-
-
-                    else
-                    {
-                        var selore = args.Parameters[2].ToLowerInvariant();
-                        var searchlist = ores.Keys.ToList();
-                        var findore = ITileValidation.FindMatches(selore, searchlist);
-
-
-                        if (findore.Count > 1)
+                        Dictionary<string, ushort> ores = new Dictionary<string, ushort>
                         {
-                            args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] More than one match found: ");
+                            ["cobalt"] = TileID.Cobalt,
+                            ["mythril"] = TileID.Mythril,
+                            ["copper"] = TileID.Copper,
+                            ["iron"] = TileID.Iron,
+                            ["silver"] = TileID.Silver,
+                            ["gold"] = TileID.Gold,
+                            ["demonite"] = TileID.Demonite,
+                            ["sapphire"] = TileID.Sapphire,
+                            ["ruby"] = TileID.Ruby,
+                            ["emerald"] = TileID.Emerald,
+                            ["topaz"] = TileID.Topaz,
+                            ["amethyst"] = TileID.Amethyst,
+                            ["diamond"] = TileID.Diamond,
+                            ["adamantite"] = TileID.Adamantite,
+                            ["hellstone"] = TileID.Hellstone,
+                            ["tin"] = TileID.Tin,
+                            ["lead"] = TileID.Lead,
+                            ["tungsten"] = TileID.Tungsten,
+                            ["platinum"] = TileID.Platinum,
+                            ["crimtane"] = TileID.Crimtane,
+                            ["palladium"] = TileID.Palladium,
+                            ["orichalcum"] = TileID.Orichalcum,
+                            ["titanium"] = TileID.Titanium,
+                            ["chlorophyte"] = TileID.Chlorophyte,
+                            ["stone"] = TileID.Stone,
+                            ["sand"] = TileID.Sand,
+                            ["silt"] = TileID.Silt,
 
-                            lines = PaginationTools.BuildLinesFromTerms(findore.ToArray());
-                            lines.ForEach(args.Player.SendInfoMessage);
+
+
+                        };
+                        if (amount > 1000) args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] This one may take a while to load. Please wait...");
+
+                        if (args.Parameters.Count == 2)
+                        {
+
+
+
+                            await (Regen.AsyncGenerateRandOres(amount, oreTiers, ores));
+
+
+
+                            //Notify user on success
+
+                            args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} randomized ores.");
+                            if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid [c/BCFF00:{realcount}] randomized ores.", 71, 8, 185);
+                            InformPlayers();
+
+
+
+
 
                         }
-                        else if (findore.Count < 1)
-                        {
-                            args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] No matches found for ore '{selore}'");
-                            args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] Full list of ores :");
 
-                            lines = PaginationTools.BuildLinesFromTerms(ores.Keys.ToArray());
-                            lines.ForEach(args.Player.SendInfoMessage);
-                        }
+
+
                         else
                         {
-                            ores.TryGetValue(findore[0], out oreID);
+                            string selore = args.Parameters[2].ToLowerInvariant();
+                            List<string> searchlist = ores.Keys.ToList();
+                            List<string> findore = TileValidation.FindMatches(selore, searchlist);
 
 
-                            //If user specifies how many ores to generate (make sure not over 10000)
+                            if (findore.Count > 1)
+                            {
+                                args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] More than one match found: ");
+
+                                lines = PaginationTools.BuildLinesFromTerms(findore.ToArray());
+                                lines.ForEach(args.Player.SendInfoMessage);
+
+                            }
+                            else if (findore.Count < 1)
+                            {
+                                args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] No matches found for ore '{selore}'");
+                                args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] Full list of ores :");
+
+                                lines = PaginationTools.BuildLinesFromTerms(ores.Keys.ToArray());
+                                lines.ForEach(args.Player.SendInfoMessage);
+                            }
+                            else
+                            {
+                                ores.TryGetValue(findore[0], out oreID);
 
 
 
-                            realcount = await Task.Run(() => Regen.AsyncGenerateOre(amount, oreID, oreTiers));
 
-                            InformPlayers();
-                            args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} {findore[0]} ores.");
-                            if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} {findore[0]} ores.", 71, 8, 185);
+
+
+                                await (Regen.AsyncGenerateOres(amount, oreID, oreTiers));
+
+
+
+                                //Notify user on success
+
+                                args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} {findore[0]} ores.");
+                                if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid [c/BCFF00:{realcount}] {findore[0]} ores.", 71, 8, 185);
+                                InformPlayers();
+
+
+
+
+
+                            }
                         }
                     }
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
                     break;
                 #endregion
                 #region Webs
                 case "webs":
 
-                    List<ushort> SpiderWalls = new List<ushort>
+
+
+                    if (!isTaskRunning)
+                    {
+                        List<ushort> SpiderWalls = new List<ushort>
                         {
                             WallID.Spider,
                             WallID.SpiderEcho,
                             WallID.SpiderUnsafe
                         };
 
-                    realcount = await Task.Run(() => Regen.AsyncGenerateWebs(amount, SpiderWalls));
+                        await (Regen.AsyncGenerateWebs(amount, SpiderWalls));
 
-                    InformPlayers();
-                    args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} webs.");
-                    if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} webs.", 71, 8, 185);
+
+
+                        //Notify user on success
+
+                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} webs.");
+                        if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid [c/BCFF00:{realcount}] webs.", 71, 8, 185);
+                        InformPlayers();
+
+                    }
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
+
                     break;
 
 
@@ -705,51 +887,87 @@ namespace WorldRefill
                 #region Trees
                 case "trees":
 
-                    await Task.Run(() => Regen.AsyncGenerateTrees());
-                    InformPlayers();
-                    args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated trees on the surface!.");
-                    TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated trees on the surface!", 71, 8, 185);
+                    if (!isTaskRunning)
+                    {
+
+
+                        await (Regen.AsyncGenerateTrees());
+
+
+
+                        //Notify user on success
+
+                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated trees on the surface!.");
+                        TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated trees on the surface!", 71, 8, 185);
+                        InformPlayers();
+
+                    }
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
+
                     break;
+
+
 
                 #endregion
                 #region Shrooms
                 case "shrooms":
+                    if (!isTaskRunning)
+                    {
+                        await Regen.AsyncGenerateShrooms(amount);
 
 
 
 
+                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} mushrooms in their biomes!");
+                        if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid [c/BCFF00:{realcount}] mushrooms in their biomes!", 71, 8, 185);
+                        InformPlayers();
 
-
-
-                    realcount = await Task.Run(() => Regen.AsyncGenerateShrooms(amount));
-
-                    InformPlayers();
-                    args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} mushrooms in their biomes!");
-                    if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {realcount} mushrooms in their biomes!", 71, 8, 185);
+                    }
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
 
                     break;
+
+
+
                 #endregion
                 #region Dungeon
                 case "dungeon":
-
-
-                    tryX = args.Player.TileX; //Gets X tile from the right of the character
-                    tryY = args.Player.TileY; //Gets Y Tile from the head tile of the character
-
-
-                    if (ITileValidation.inWorld(tryX, tryY) && ITileValidation.onSurface(tryX, tryY)) // checks if player is standing on tile and the dungeon is not by the world border
+                    if (!isTaskRunning)
                     {
-                        await Task.Run(() => WorldGen.MakeDungeon(tryX, tryY));
-                        InformPlayers();
-                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated a Dungeon at your location!");
-                        TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated a Dungeon in the world!", 71, 8, 185);
 
-                    }
-                    else
-                    {
-                        args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Failed to create a Dungeon at this location! You have to be standing on the surface and away from the edges of the world!");
+                        tryX = args.Player.TileX; //Gets X tile from the right of the character
+                        tryY = args.Player.TileY; //Gets Y Tile from the head tile of the character
 
+
+                        if (TileValidation.inWorld(tryX, tryY) && TileValidation.onSurface(tryX, tryY)) // checks if player is standing on tile and the dungeon is not by the world border
+                        {
+
+
+
+                            await Regen.AsyncGenerateDungeon(tryX, tryY);
+
+
+
+                            //Notify user on success
+
+                            args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated a Dungeon at your location!");
+                            TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated a Dungeon in the world!", 71, 8, 185);
+                            InformPlayers();
+
+
+
+
+
+
+
+                        }
+                        else
+                        {
+                            args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Failed to create a Dungeon at this location! You have to be standing on the surface and away from the edges of the world!");
+
+                        }
                     }
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
                     break;
                 #endregion
 
@@ -779,57 +997,79 @@ namespace WorldRefill
                 */
                 #region Pyramid
                 case "pyramid":
+                    if (!isTaskRunning)
+                    {
+                        tryX = args.Player.TileX;
+                    tryY = args.Player.TileY+5;
 
-                    tryX = args.Player.TileX;
-                    tryY = args.Player.TileY;
+
+                    if (TileValidation.inWorld(tryX, tryY) && TileValidation.onSurface(tryX, tryY))
+                        
 
 
-                    if (ITileValidation.inWorld(tryX, tryY) && ITileValidation.onSurface(tryX, tryY))
-                        if (await Task.Run(() => WorldGen.Pyramid(tryX, tryY)))
-                        {
-                            InformPlayers();
-                            args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] A Pyramid was Successfully Generated.");
-                            TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated a Pyramid in the world!", 71, 8, 185);
-                        }
-                        else
-                        {
-                            args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Unexpected Error Occurred, Please contact the administrator!");
-                        }
+                            if (await Regen.AsyncGeneratePyramid(tryX, tryY))
+                            {
+                                args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] A Pyramid was Successfully Generated.");
+                                TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated a Pyramid in the world!", 71, 8, 185);
+                                InformPlayers();
+
+                            }
+                            else
+                            {
+                                args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Unexpected Error Occurred, Please contact the administrator!");
+                            }
+                       
                     else
                     {
                         args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Failed to create a Pyramid at this location! You have to be standing on the surface and away from the edges of the world!");
 
                     }
+                    }
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
+
+
+                    //Notify user on success
+
 
 
                     break;
                 #endregion
                 #region Minehouse
                 case "minehouse":
-
-                    tryX = args.Player.TileX;
-                    tryY = args.Player.TileY;
-                    if (tryY > Main.worldSurface && tryY < Main.UnderworldLayer && ITileValidation.inWorld(tryX, tryY))
+                    if (!isTaskRunning)
                     {
-                        await Task.Run(() => WorldGen.MineHouse(tryX, tryY));
+                        tryX = args.Player.TileX;
+                    tryY = args.Player.TileY;
+                    if (tryY > Main.worldSurface && tryY < Main.UnderworldLayer && TileValidation.inWorld(tryX, tryY))
+                    {
+                       
 
-                        InformPlayers();
-                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] A Minehouse was Successfully Generated.");
-                        TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated a Minehouse in the world!", 71, 8, 185);
+
+
+                            await Regen.AsyncGenerateMinehouse(tryX, tryY);
+                            args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] A Minehouse was Successfully Generated.");
+                            TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated a Minehouse in the world!", 71, 8, 185);
+                            InformPlayers();
+
+
+                       
+
 
                     }
                     else
                     {
                         args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Failed to create a Minehouse at this location! You have to be in the cavern layer and not near the world border!");
                     }
-
+                    }
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
                     break;
 
                 #endregion
                 #region Hellevator
                 case "hellevator":
-
-                    List<ushort> trees = new List<ushort>
+                    if (!isTaskRunning)
+                    {
+                        List<ushort> trees = new List<ushort>
                     {
                         TileID.Trees,
                         TileID.TreeAmber,
@@ -844,70 +1084,147 @@ namespace WorldRefill
                         TileID.VanityTreeYellowWillow,
                         TileID.VanityTreeSakura
                     };
-                    int posX = args.Player.TileX;
-                    int posY = args.Player.TileY;
+                    tryX = args.Player.TileX;
+                    tryY = args.Player.TileY;
 
-                    if (ITileValidation.onSurface(posX, posY) && ITileValidation.inWorld(posX, posY))
+                    if (TileValidation.onSurface(tryX, tryY) && TileValidation.inWorld(tryX, tryY))
                     {
-                        await Task.Run(() => Regen.AsyncGenerateHellevator(args, posX, posY, trees));
-                        InformPlayers();
-                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] A Hellevator was Successfully Generated.");
-                        TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated a Hellevator at X: [c/BCFF00:{posX}], Y: [c/BCFF00:{posY}] !", 71, 8, 185);
+                        
+                            await (Regen.AsyncGenerateHellevator(tryX, tryY, trees));
+                            InformPlayers();
+                            args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] A Hellevator was Successfully Generated.");
+                            TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated a Hellevator at X: [c/BCFF00:{tryX}], Y: [c/BCFF00:{tryY}] !", 71, 8, 185);
+
+                       
                     }
 
                     else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Failed to create a Hellevator at this location! You have to be standing on the surface and away from the edges of the world!");
+                    }
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
                     break;
                 #endregion
                 #region World
                 case "world":
-
-                    if (args.Parameters.Count < 2)
+                    if (!isTaskRunning)
+                    {
+                        if (args.Parameters.Count < 2)
                     {
                         args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] This will delete the world and replace it with a new one are you sure?");
                         args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] To confirm please put /gen world true");
                         break;
                     }
-                    bool confirm = bool.Parse(args.Parameters[1].ToLowerInvariant());
+                        if (bool.TryParse(args.Parameters[1], out bool confirm))
+                        {
 
 
 
-                    if (confirm == false)
+                            if (confirm == false)
+                            {
+                                args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] This will delete the world and replace it with a new one are you sure?");
+                                args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] To confirm please put /gen world true");
+                            }
+                            else
+                            {
+                                TSPlayer.All.SendInfoMessage($"[[c/FFFFFF:{Name}]] The World is Generating, Please Wait!");
+
+
+                                await Regen.AsyncGenerateWorld();
+                                foreach (TSPlayer plr in TShock.Players)
+                                {
+                                    if (plr != null && Main.tile[plr.TileX, plr.TileY].active())
+                                    {
+                                        plr.Teleport(Main.spawnTileX * 16, (Main.spawnTileY * 16) - 48);
+                                    }
+
+                                }
+                                InformPlayers();
+                                args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] The World was Successfully Regenerated!");
+                                TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] The World was Successfully Regenerated!", 71, 8, 185);
+
+
+
+                            }
+                        }
+                        else
+                        {
+                            args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] This will delete the world and replace it with a new one are you sure?");
+                            args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] To confirm please put /gen world true");
+                        }
+                    }
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
+
+
+                    break;
+
+                #region Floating Island
+
+                case "island":
+
+                    tryX = args.Player.TileX;
+                    tryY = args.Player.TileY;
+
+                    if (args.Parameters.Count == 2)
                     {
-                        args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] This will delete the world and replace it with a new one are you sure?");
-                        args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] To confirm please put /gen world true");
+
+                        Dictionary<string, int> IslandList = new Dictionary<string, int>
+                        {
+
+                            ["floating"] = 0,
+                            ["desert"] = 1,
+                            ["snow"] = 2,
+
+
+                        };
+
+                        string selisland = args.Parameters[1].ToLowerInvariant();
+                        List<string> islands = IslandList.Keys.ToList();
+                        List<string> foundisland = TileValidation.FindMatches(selisland, islands);
+
+                        if (foundisland.Count > 1)
+                        {
+                            args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] More than one match found: ");
+
+                            lines = PaginationTools.BuildLinesFromTerms(foundisland.ToArray());
+                            lines.ForEach(args.Player.SendInfoMessage);
+                        }
+                        else if (foundisland.Count < 1)
+                        {
+                            args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] No matches found for ore '{selisland}'");
+                            args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] Full list of ores :");
+
+                            lines = PaginationTools.BuildLinesFromTerms(IslandList.Keys.ToArray());
+                            lines.ForEach(args.Player.SendInfoMessage);
+                        }
+                        else
+                        {
+                            IslandList.TryGetValue(foundisland[0], out int island);
+                            if (!isTaskRunning)
+                            {
+
+                                await Regen.AsyncGenerateIsland(island, tryX, tryY);
+                                InformPlayers();
+                                args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid a {foundisland[0]} island.");
+                                TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid {foundisland[0]} island.", 71, 8, 185);
+                                isTaskRunning = false;
+                            }
+                            else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
+
+                        }
+
                     }
                     else
                     {
-
-                        args.Player.SendInfoMessage($"[[c/FFFFFF:{Name}]] This one may take a while to load. Please wait... DO NOT DROP ANY ITEMS");
-
-                        await Task.Run(() =>
-                         {
-                             WorldGen.clearWorld();
-                             WorldGen.GenerateWorld(WorldGen._lastSeed);
-
-
-
-                         });
-                        InformPlayers();
-                        foreach (TSPlayer plr in TShock.Players)
-                        {
-                            if (plr != null && Main.tile[plr.TileX, plr.TileY].active())
-                            {
-                                plr.Teleport(Main.spawnTileX * 16, (Main.spawnTileY * 16) - 48);
-                            }
-
-                        }
+                        args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Invalid Syntax! Use {Commands.Specifier}gen island <Specified island>");
                     }
-
                     break;
+
+                #endregion
+
 
 
 
                 #endregion
-                case "test":
-                    args.Player.SendInfoMessage($"SURFACE :{Main.worldSurface}, CAVERN:{Main.rockLayer}, HELL:{Main.UnderworldLayer}");
-                    break;
+
 
 
                 #region Default case
@@ -970,18 +1287,7 @@ namespace WorldRefill
                 InformPlayers();
             }
             #endregion
-            #region GenCloudIsland Command
-            private void DoCloudIsland(CommandArgs args)
-            {
-                tryX = args.Player.TileX;
-                tryY = args.Player.TileY;
-                WorldGen.CloudIsland(tryX, tryY + 9);
-                WorldGen.IslandHouse(tryX, tryY + 1, 1);
-
-                args.Player.SendSuccessMessage("Attempted to generate an un-looted floating island at your position.");
-                InformPlayers();
-            }
-            #endregion
+            
 
 
             #region GenChests Command
@@ -1191,6 +1497,8 @@ namespace WorldRefill
         }
 
         #endregion
+
+
         private List<int> ItemList
         {
             get

@@ -30,6 +30,7 @@
 | pyramid | Spawns a pyramid in the world |/gen pyramid |
 | minehouse | Spawns a minehouse in the world |/gen minehouse |
 | hellevator | Spawns a hellevator in the world |/gen hellevator |
+| island | Spawns a floating island in the world |/gen island (type of island) |
 | world | Resets the World to its original state! | /gen world |
 
  
@@ -39,45 +40,6 @@ These are up to date as of 12/06/2020
 
 ## Build 🧱
 You can find the compiled dll in WorldRefill>bin>release (Worldrefill.dll)
-
-## Changelog ⌛
-
-Why Version 2.0? Here's why:
-
-Using a switch statement instead of a command for each possible generation, makes things look alot neater :)
-
-Maxtries now can be customised in the config json file! this controls how many attempts it has at generating an object.
-
-Pots now actually generate their biome variants, no longer do we have the default pot in hell or in the dungeon!
-
-Input validation has been implemented - checks are now in place to make sure that strings and 0/negative integers stay away! go away :(
-
-Reloading of the config will now take place when using /reload instead of using /genreload
-
-the old trap generation used to just generate geysers, we now have a random number implemented so that it will switch between the various 
-cave traps!
-
-Temple traps have been implemented, this is completely new for this plugin, i went through the effort of checking for lihzahrd bricks in the vicinity of
-the trap only to realize that the method itself did it for me :(
-
-Lava traps have been implemented, this is also completely new for this plugin
-
-Altered the altar generation making it so that in crimson worlds it will create crimson altars instead of demon altars
-
-Also some minor changes that mainly affect the clarity of the feedback to the user.
-
-Regex has been implemented and error generation has been changed so that errors are more dynamic.
-
-Statues are fundamentally changed, they now utilize Terraria's built-in statuelist meaning that even if terraria updates to add statues,
-they will also be added to the list. the spawning of specific statues now uses a dictionary, and includes more statues.
-
-Ores have been implemented and refined - Chlorophyte now only spawns in the jungle and only replaces mud blocks
-unnatural ores have been removed such as meteorite as that drops from meteors
-
-
-
-
-
 
 
 ## Release History ⌚
@@ -147,14 +109,30 @@ Living tree also needs to be looked at when i get time.
 	* Code has been split up, generation functions have been moved to Regen.cs and Validations that were used have been moved to Validation.cs and the Creation and Reading
 of the config has been moved to Config.cs.
 
+* 2.1.1
+	* Removal of Test debug feature, this was accidentally left in!	
+	
+	* Config has been moved to its own folder for less complicated access.
+
+	* Fixed issue where spamming /gen world true would cause a crash
+
+	* Floating islands have been implemented! the normal variant still needs some work and tile validation still has to be implemented.
+
+	* Fixed issue where using extremely high numbers for the generation would cause a crash!
+
+	* Fixed issue where spawning pyramid would get you stuck.
+
 	
 
 
 ## To Fix
 
-* input values of 999999999999999999999999999999999999, this causes a parsing issue crash.
 
-* spamming world causing a crash, solution to this is either to create a pop and push stack for a queue type solution or use Task.handled.
+* Floating islands Tile Validation
+
+* onSurface tile validation
+
+
 
 
 ## To Implement

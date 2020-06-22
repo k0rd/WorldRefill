@@ -9,15 +9,19 @@ namespace WorldRefill
 
     public class Config
     {
-        private static string savepath = TShock.SavePath;
+
+        private static string savepath = "WorldRefill";
+        
         public static Config config;
         // Config Code stolen from InanZed's DieMob
         #region Create
         private static void CreateConfig()
         {
+            Directory.CreateDirectory(savepath);
             string filepath = Path.Combine(savepath, "WorldRefillConfig.json");
             try
             {
+                
                 using (var stream = new FileStream(filepath, FileMode.Create, FileAccess.Write, FileShare.Write))
                 {
                     using (var sr = new StreamWriter(stream))
@@ -57,7 +61,7 @@ namespace WorldRefill
                 }
                 else
                 {
-                    TShock.Log.ConsoleError("World Refill config not found. Creating new one...");
+                    TShock.Log.ConsoleError("[World Refill] World Refill config not found. Creating new one...");
                     CreateConfig();
                     return false;
                 }

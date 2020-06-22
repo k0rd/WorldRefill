@@ -4,9 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Terraria;
 using Terraria.ID;
-using Terraria;
 using Terraria.DataStructures;
-using Terraria.ID;
 using Terraria.Modules;
 using Terraria.UI;
 using TerrariaApi.Server;
@@ -16,7 +14,7 @@ using TShockAPI.Hooks;
 
 namespace WorldRefill
 {
-    class ITileValidation
+    class TileValidation
     {
         public static bool onSurface(int X, int Y)
         {
@@ -56,7 +54,7 @@ namespace WorldRefill
                 {
 
 
-                    if (Main.tile[X, i].active())
+                    if (Main.tile[X, i].active() && Main.tileSolidTop[Main.tile[X,i].type])
                     {
 
                         violation = false;
@@ -187,6 +185,7 @@ namespace WorldRefill
             else return null;
             
         }
+
         
     }
 }
