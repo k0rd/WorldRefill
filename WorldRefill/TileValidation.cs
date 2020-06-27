@@ -11,6 +11,7 @@ using TerrariaApi.Server;
 using TShockAPI;
 using TShockAPI.DB;
 using TShockAPI.Hooks;
+using System;
 
 namespace WorldRefill
 {
@@ -40,29 +41,62 @@ namespace WorldRefill
         };
             bool violation = true;
 
-            if (!Main.tile[X, Y + 3].active() && !Main.tile[X + 1, Y + 3].active())
-            {
 
-                violation = false;
+      
+
+            if (surfacetiles.Contains(Main.tile[X, Y + 3].type) || surfacetiles.Contains(Main.tile[X + 1, Y + 3].type))
+            {
+               
+                if (!Main.tile[X, Y + 3].active() || !Main.tile[X + 1, Y + 3].active())
+                {
+                    violation = false;
+                }
             }//block stand check
 
-            Parallel.For(Y, 0, (i) =>
 
+            for (int i = Y; i > 0; i--)
             {
 
                 if (surfacetiles.Contains(Main.tile[X, i].type))
                 {
 
-
-                    if (Main.tile[X, i].active() && Main.tileSolidTop[Main.tile[X,i].type])
+                   
+                    if (Main.tile[X, i].active())
                     {
 
                         violation = false;
                     }//checks to see if surface blocks are above player
 
+                    
+
                 }
-            });
+                else if (Main.tile[X, i].type == TileID.Cloud)
+                {
+                    violation = true;
+                    break;
+                }
+            }
+
             return violation;
+        }
+        public static bool islandTileValidation(int X, int Y)
+        {
+            int distanceToSurface;
+            for (distanceToSurface = 200; (double)distanceToSurface < Main.worldSurface; ++distanceToSurface)
+            {
+                if (Main.tile[X, distanceToSurface].active())
+                {
+
+                    break;
+                }
+            }
+
+
+            if (Y > 100 && Y <= distanceToSurface - 50 && X > 250 && X < Main.maxTilesX - 250)
+            {
+                return true;
+            }
+            else return false;
         }
         public static bool inWorld(int X, int Y)
         {
@@ -79,6 +113,7 @@ namespace WorldRefill
             {
                 if (find != null)
                 {
+
                     if (search == find)
                     {
 
@@ -183,9 +218,9 @@ namespace WorldRefill
             else if (tile.type == TileID.CrimsonGrass) return new List<ushort> { TileID.CrimsonPlants, 15, 270 };
             else if (tile.type == TileID.MushroomGrass) return new List<ushort> { TileID.MushroomPlants, 0, (ushort)tile.frameX };
             else return null;
-            
+
         }
 
-        
+
     }
 }

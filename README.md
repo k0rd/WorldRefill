@@ -1,6 +1,19 @@
 # World Refill - TShock Plugin 🛠️
 
 > World Refill Plugin by k0rd, IcyPhoenix and Enerdy (Updated by Illuminousity/Matheis)
+
+## Introduction 🗺
+
+This plugin has been vastly improved from the original and comes with a number of performance improvements
+/ more checks in place to make sure generation isnt unnatural. The aim of this plugin is to keep a perfectly
+natural world whilst having all the resources you could want without ruining it, however this is up to the user to decide.
+
+I cannot stress this enough, please do not give this command to users, at current this plugin does not work with tshock regions and performing the /gen world command
+could destroy your spawn etc.
+
+Please use with care!
+
+Most importantly though, have fun!
  
 ## Commands List 
 
@@ -31,7 +44,14 @@
 | minehouse | Spawns a minehouse in the world |/gen minehouse |
 | hellevator | Spawns a hellevator in the world |/gen hellevator |
 | island | Spawns a floating island in the world |/gen island (type of island) |
-| world | Resets the World to its original state! | /gen world |
+| world | Resets the World to its original state! | /gen world true [seed] |
+
+
+## Permissions 🚫
+
+* Generation Command (/gen) : "worldrefill.generate"
+* To Reload the config use the /reload command, it is hooked onto there.
+
 
  
 ## References 💾
@@ -122,22 +142,38 @@ of the config has been moved to Config.cs.
 
 	* Fixed issue where spawning pyramid would get you stuck.
 
+*2.1.2
+	* Floating Islands Tile Validation has been added, this is based on natural generation so you would need to be around the same Y-level as other islands
+
+	* Skylake has been added to islands!
+
+	* Grass now grows on the floating island! (In order to grow trees do /gen trees)
+
+	* World can now take a seed input, leave seed empty to generate world with the same seed, this also applied to special seeds such as "not the bees!"
+
+	* onSurface has now been fixed, you must be standing on blocks with both feet!
+
+	* Added a Log so that you can keep track of every single generation
+
+	* A sound now plays when a generation is completed!
+
+	* InfChests3 Support has been added! on generation it will now automatically send the chests generated to the db!
+
+	
+
 	
 
 
-## To Fix
+## Currently Working On!
 
-
-* Floating islands Tile Validation
-
-* onSurface tile validation
+* Chests, everything Chests, full infchests support!
 
 
 
 
 ## To Implement
 
-* Floating Islands
+
 
 * Temple (this one will be difficult)
 

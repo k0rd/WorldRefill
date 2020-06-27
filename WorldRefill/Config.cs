@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.IO;
+
 using TShockAPI;
 
 
@@ -10,69 +11,6 @@ namespace WorldRefill
     public class Config
     {
 
-        private static string savepath = "WorldRefill";
-        
-        public static Config config;
-        // Config Code stolen from InanZed's DieMob
-        #region Create
-        private static void CreateConfig()
-        {
-            Directory.CreateDirectory(savepath);
-            string filepath = Path.Combine(savepath, "WorldRefillConfig.json");
-            try
-            {
-                
-                using (var stream = new FileStream(filepath, FileMode.Create, FileAccess.Write, FileShare.Write))
-                {
-                    using (var sr = new StreamWriter(stream))
-                    {
-                        config = new Config();
-                        var configString = JsonConvert.SerializeObject(config, Formatting.Indented);
-                        sr.Write(configString);
-                    }
-                    stream.Close();
-                }
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.ConsoleError(ex.Message);
-                config = new Config();
-            }
-        }
-        #endregion
-        #region Read
-        public static bool ReadConfig()
-        {
-            string filepath = Path.Combine(savepath, "WorldRefillConfig.json");
-            try
-            {
-                if (File.Exists(filepath))
-                {
-                    using (var stream = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                    {
-                        using (var sr = new StreamReader(stream))
-                        {
-                            var configString = sr.ReadToEnd();
-                            config = JsonConvert.DeserializeObject<Config>(configString);
-                        }
-                        stream.Close();
-                    }
-                    return true;
-                }
-                else
-                {
-                    TShock.Log.ConsoleError("[World Refill] World Refill config not found. Creating new one...");
-                    CreateConfig();
-                    return false;
-                }
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.ConsoleError(ex.Message);
-            }
-            return false;
-        }
-        #endregion
         // Variables to be added to WorldRefillConfig.json | Moved default chest IDs here so that people can edit them
         #region DefaultChestIDs
         public int[] DefaultChestIDs = new[]
@@ -133,10 +71,80 @@ namespace WorldRefill
                 156
             };
         #endregion
-        
-        public const int GenerationMaxTries = 1000000;
-        public bool UseInfiniteChests { get; } = false;
-        public bool GenInsideProtectedRegions { get; } = false;
+
+        public int GenerationMaxTries = 1000000;
+        public bool UseInfiniteChests = false;
+        public bool GenInsideProtectedRegions = false;
+
+
+
+
         // Setting this value higher may result in more lag when generating as this is the maximum amount of tries it will take to generate amenities.
+
+        public static string savepath = "WorldRefill";
+
+        public static Config ConfigFile { get; set; }
+        // Config Code stolen from InanZed's DieMob
+        #region Create
+        private static void CreateConfig()
+        {
+            Directory.CreateDirectory(savepath);
+            string filepath = Path.Combine(savepath, "WorldRefillConfig.json");
+            try
+            {
+                
+                using (var stream = new FileStream(filepath, FileMode.Create, FileAccess.Write, FileShare.Write))
+                {
+                    using (var sr = new StreamWriter(stream))
+                    {
+                        ConfigFile = new Config();
+                        var configString = JsonConvert.SerializeObject(ConfigFile, Formatting.Indented);
+                        sr.Write(configString);
+                    }
+                    stream.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                TShock.Log.ConsoleError(ex.Message);
+                ConfigFile = new Config();
+            }
+        }
+        #endregion
+        #region Read
+        public static bool ReadConfig()
+        {
+            string filepath = Path.Combine(savepath, "WorldRefillConfig.json");
+            try
+            {
+                if (File.Exists(filepath))
+                {
+                    using (var stream = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    {
+                        using (var sr = new StreamReader(stream))
+                        {
+                            var configString = sr.ReadToEnd();
+                            ConfigFile = JsonConvert.DeserializeObject<Config>(configString);
+                            Console.WriteLine(ConfigFile.UseInfiniteChests);
+                        }
+                        stream.Close();
+                    }
+                    return true;
+                }
+                else
+                {
+                    TShock.Log.ConsoleError("[World Refill] World Refill config not found. Creating new one...");
+                    CreateConfig();
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                TShock.Log.ConsoleError(ex.Message);
+            }
+            return false;
+        }
+        #endregion
+
     }
 }

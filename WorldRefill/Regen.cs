@@ -13,20 +13,23 @@ using Terraria.ID;
 using TShockAPI;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
+using TerrariaApi.Server;
+using System.Text;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace WorldRefill
 {
     static class Regen
     {
 
-
-        public static Task AsyncGenLifeCrystals(short amount, int maxtries = Config.GenerationMaxTries)
+        
+        public static Task AsyncGenLifeCrystals(short amount)
         {
             WorldRefill.isTaskRunning = true;
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= maxtries; trycount++)
+                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
                     if (WorldGen.AddLifeCrystal(WorldGen.genRand.Next(1, Main.maxTilesX), WorldGen.genRand.Next((int)(Main.rockLayer), (int)(Main.UnderworldLayer + 100))))
                     {
@@ -39,15 +42,15 @@ namespace WorldRefill
                 }
 
                 WorldRefill.realcount = realcount;
-            }).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+            }).ContinueWith((d) => FinishGen());
             }
-        public static Task AsyncGenPots(short amount, int maxtries = Config.GenerationMaxTries)
+        public static Task AsyncGenPots(short amount)
         {
             WorldRefill.isTaskRunning = true;
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= maxtries; trycount++)
+                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
                     int tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
 
@@ -92,15 +95,15 @@ namespace WorldRefill
 
                 }
                 WorldRefill.realcount = realcount;
-            }).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+            }).ContinueWith((d) => FinishGen());
             }
-        public static Task AsyncGenerateOrbs(short amount, int maxtries = Config.GenerationMaxTries)
+        public static Task AsyncGenerateOrbs(short amount)
         {
             WorldRefill.isTaskRunning = true;
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= maxtries; trycount++)
+                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
                     int tryX = WorldGen.genRand.Next(50, Main.maxTilesX - 50);
                     int tryY = WorldGen.genRand.Next((int)Main.worldSurface + 20, Main.UnderworldLayer);
@@ -122,15 +125,15 @@ namespace WorldRefill
 
                 }
                 WorldRefill.realcount = realcount;
-            }).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+            }).ContinueWith((d) => FinishGen());
         }
-        public static Task AsyncGenerateAltars(short amount, int maxtries = Config.GenerationMaxTries)
+        public static Task AsyncGenerateAltars(short amount)
         {
             WorldRefill.isTaskRunning = true;
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= maxtries; trycount++)
+                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
                     int tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
                     int tryY = WorldGen.genRand.Next((int)Main.worldSurface + 10, (int)Main.rockLayer);
@@ -153,15 +156,15 @@ namespace WorldRefill
 
                 }
                 WorldRefill.realcount = realcount;
-            }).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+            }).ContinueWith((d) => FinishGen());
         }
-        public static Task AsyncGenerateCavetraps(short amount, int maxtries = Config.GenerationMaxTries)
+        public static Task AsyncGenerateCavetraps(short amount)
         {
             WorldRefill.isTaskRunning = true;
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= maxtries; trycount++)
+                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
                     int tryX = WorldGen.genRand.Next(200, Main.maxTilesX - 200);
                     int tryY = WorldGen.genRand.Next((int)Main.worldSurface, Main.UnderworldLayer - 100);
@@ -176,15 +179,15 @@ namespace WorldRefill
 
                 }
                 WorldRefill.realcount = realcount;
-            }).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+            }).ContinueWith((d) => FinishGen());
         }
-        public static Task AsyncGenerateTempletraps(short amount, int maxtries = Config.GenerationMaxTries)
+        public static Task AsyncGenerateTempletraps(short amount)
         {
             WorldRefill.isTaskRunning = true;
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= maxtries; trycount++)
+                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
 
                 {
                     int tryX = WorldGen.genRand.Next(250, Main.maxTilesX - 250);
@@ -203,40 +206,16 @@ namespace WorldRefill
 
                 }
                 WorldRefill.realcount = realcount;
-            }).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+            }).ContinueWith((d) => FinishGen());
         }
-        public static Task AsyncGenerateStatuetraps(short amount, int maxtries = Config.GenerationMaxTries)
+       
+        public static Task AsyncGenerateLavatraps(short amount)
         {
             WorldRefill.isTaskRunning = true;
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= maxtries; trycount++)
-
-                {
-                    int tryX = WorldGen.genRand.Next(11, Main.maxTilesX - 11);
-                    int tryY = WorldGen.genRand.Next((int)Main.worldSurface, Main.UnderworldLayer);
-
-                    WorldGen.PlaceStatueTrap(tryX, tryY);
-
-                    if ((int)Main.tile[tryX, tryY].type == TileID.Statues)
-                    {
-
-                        realcount++;
-                        if (realcount == amount) break;
-                    }
-
-                }
-                WorldRefill.realcount = realcount;
-            }).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
-        }
-        public static Task AsyncGenerateLavatraps(short amount, int maxtries = Config.GenerationMaxTries)
-        {
-            WorldRefill.isTaskRunning = true;
-            int realcount = 0;
-            return Task.Run(() =>
-            {
-                for (int trycount = 0; trycount <= maxtries; trycount++)
+                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
 
                 {
                     int tryX = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
@@ -254,15 +233,15 @@ namespace WorldRefill
 
                 }
                 WorldRefill.realcount = realcount;
-            }).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+            }).ContinueWith((d) => FinishGen());
         }
-        public static Task AsyncGenerateSandtraps(short amount, int maxtries = Config.GenerationMaxTries)
+        public static Task AsyncGenerateSandtraps(short amount)
         {
             WorldRefill.isTaskRunning = true;
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= maxtries; trycount++)
+                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
 
                 {
                     int tryX = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
@@ -281,15 +260,15 @@ namespace WorldRefill
 
                 }
                 WorldRefill.realcount = realcount;
-            }).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+            }).ContinueWith((d) => FinishGen());
         }
-        public static Task AsyncGenerateRandStatues(short amount, int maxtries = Config.GenerationMaxTries)
+        public static Task AsyncGenerateRandStatues(short amount)
         {
             WorldRefill.isTaskRunning = true;
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= maxtries; trycount++)
+                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
 
                     int tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
@@ -329,15 +308,15 @@ namespace WorldRefill
 
                 }
                 WorldRefill.realcount = realcount;
-            }).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+            }).ContinueWith((d) => FinishGen());
         }
-        public static Task AsyncGenerateStatues(short amount, short tileid = 0, short style = 0, int maxtries = Config.GenerationMaxTries)
+        public static Task AsyncGenerateStatues(short amount, short tileid = 0, short style = 0)
         {
             WorldRefill.isTaskRunning = true;
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= maxtries; trycount++)
+                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
 
                     int tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
@@ -377,9 +356,9 @@ namespace WorldRefill
 
                 }
                 WorldRefill.realcount = realcount;
-            }).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+            }).ContinueWith((d) => FinishGen());
         }
-        public static Task AsyncGenerateRandOres(short amount, List<ushort[]> oreTiers, Dictionary<string, ushort> ores, int maxtries = Config.GenerationMaxTries)
+        public static Task AsyncGenerateRandOres(short amount, List<ushort[]> oreTiers)
         {
             WorldRefill.isTaskRunning = true;
             int realcount = 0;
@@ -388,11 +367,11 @@ namespace WorldRefill
             int maxFrequency;
             int minSpread;
             int maxSpread;
-            List<ushort> totalores = ores.Values.ToList<ushort>();
+            List<ushort> totalores = StoredLists.ores.Values.ToList<ushort>();
 
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= maxtries; trycount++)
+                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
 
                     int X = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
@@ -507,9 +486,9 @@ namespace WorldRefill
 
                 }
                 WorldRefill.realcount = realcount;
-            }).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+            }).ContinueWith((d) => FinishGen());
         }
-        public static Task AsyncGenerateOres(short amount, ushort oreID, List<ushort[]> oreTiers, int maxtries = Config.GenerationMaxTries)
+        public static Task AsyncGenerateOres(short amount, ushort oreID, List<ushort[]> oreTiers)
         {
             WorldRefill.isTaskRunning = true;
             int realcount = 0;
@@ -607,7 +586,7 @@ namespace WorldRefill
 
 
                 }
-                for (int trycount = 0; trycount <= maxtries; trycount++)
+                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
                     //Get random number from 100 tiles each side
                     int X = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
@@ -632,14 +611,14 @@ namespace WorldRefill
 
                 }
                 WorldRefill.realcount = realcount;
-            }).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+            }).ContinueWith((d) => FinishGen());
         }
-        public static Task AsyncGenerateWebs(short amount, List<ushort> SpiderWalls, int maxtries = Config.GenerationMaxTries)
+        public static Task AsyncGenerateWebs(short amount, List<ushort> SpiderWalls)
         {
             WorldRefill.isTaskRunning = true;
             int realcount = 0;
             return Task.Run(() => {
-                for (int trycount = 0; trycount <= maxtries; trycount++)
+                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
                     int tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
                     int tryY = WorldGen.genRand.Next(50, Main.UnderworldLayer);
@@ -673,11 +652,12 @@ namespace WorldRefill
 
                 }
                 WorldRefill.realcount = realcount;
-            }).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+            }).ContinueWith((d) => FinishGen());
         }
         public static Task AsyncGenerateTrees()
         {
             WorldRefill.isTaskRunning = true;
+            WorldRefill.realcount = 1;
             int count = 0;
             for (int counter = 0; counter < Main.maxTilesX * 0.003; counter++)
             {
@@ -694,16 +674,16 @@ namespace WorldRefill
                 }
 
             }
-            return Task.Run(() => WorldGen.AddTrees()).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+            return Task.Run(() => WorldGen.AddTrees()).ContinueWith((d) => FinishGen());
 
         }
-        public static Task AsyncGenerateShrooms(short amount, int maxtries = Config.GenerationMaxTries)
+        public static Task AsyncGenerateShrooms(short amount)
         {
             WorldRefill.isTaskRunning = true;
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= maxtries; trycount++)
+                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
                     int tryX = WorldGen.genRand.Next(200, Main.maxTilesX - 200);
                     int tryY = WorldGen.genRand.Next((int)Main.worldSurface - 150, Main.UnderworldLayer);
@@ -721,7 +701,7 @@ namespace WorldRefill
                     if (shroom != null && !Main.tile[tryX, tryY].active())
                     {
 
-
+                        
                         WorldGen.PlaceTile(tryX, tryY, shroom[0], false, true, -1, shroom[1]);
                         Main.tile[tryX, tryY].frameX = (short)shroom[2];
                         if (Main.tile[tryX, tryY].type == shroom[0])
@@ -734,12 +714,13 @@ namespace WorldRefill
 
                 }
                 WorldRefill.realcount = realcount;
-            }).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+            }).ContinueWith((d) => FinishGen());
 
         }
         public static Task AsyncGenerateHellevator(int posX, int posY, List<ushort> trees)
         {
-
+            WorldRefill.isTaskRunning = true;
+            WorldRefill.realcount = 1;
 
 
 
@@ -755,7 +736,7 @@ namespace WorldRefill
                     xtile = posX;
                     Parallel.For(posX, posX + 8, (cwidth, state) =>
                     {
-                        if (Main.tile[cwidth, hell].active())
+                        if (Main.tile[cwidth, hell].active() && !Main.tile[cwidth,hell].lava())
                         {
                             state.Stop();
 
@@ -799,73 +780,114 @@ namespace WorldRefill
                 Parallel.For(Xstart, Xstart + Width, (cx) =>
                 {
 
-
-
-                    Parallel.For(Ystart, Bottom, (cy) =>
-                    {
-                        if ((cx == Xstart) || (cx == Width + Xstart - 1))
+                    Parallel.For(Ystart - 10, Ystart, (cy) =>
                         {
-                            Main.tile[cx, cy].type = tile;
+                            if (Main.tile[cx, cy].active())
+                            {
+                                WorldGen.KillTile(cx, cy, false, false, true);
+                            }
+
+                        });
+
+
+
+                Parallel.For(Ystart, Bottom, (cy) =>
+                {
+                    if ((cx == Xstart) || (cx == Width + Xstart - 1))
+                    {
+                        Main.tile[cx, cy].type = tile;
+                        Main.tile[cx, cy].active(true);
+                        Main.tile[cx, cy].slope(0);
+                        Main.tile[cx, cy].halfBrick(false);
+                    }
+                    else
+                    {
+                        if (trees.Contains(Main.tile[cx, cy - 1].type))
+                        {
+                            WorldGen.KillTile(cx, cy - 1);
+                            count++;
+                        }
+                        WorldGen.KillTile(cx, cy, false, false, true);
+                        count++;
+                        Main.tile[cx, cy].wall = wall;
+                        if ((cx == Xstart + 1 || cx == Width + Xstart - 2) && cy != Ystart)
+                        {
+                            Main.tile[cx, cy].type = TileID.WebRope;
                             Main.tile[cx, cy].active(true);
                             Main.tile[cx, cy].slope(0);
                             Main.tile[cx, cy].halfBrick(false);
                         }
-                        else
-                        {
-                            if (trees.Contains(Main.tile[cx, cy - 1].type))
-                            {
-                                WorldGen.KillTile(cx, cy - 1);
-                                count++;
-                            }
-                            WorldGen.KillTile(cx, cy, false, false, true);
-                            count++;
-                            Main.tile[cx, cy].wall = wall;
-                            if ((cx == Xstart + 1 || cx == Width + Xstart - 2) && cy != Ystart)
-                            {
-                                Main.tile[cx, cy].type = TileID.WebRope;
-                                Main.tile[cx, cy].active(true);
-                                Main.tile[cx, cy].slope(0);
-                                Main.tile[cx, cy].halfBrick(false);
-                            }
-                        }
-                    });
-                    WorldGen.PlaceTile(cx, Ystart, TileID.Platforms, false, false, -1, 13);
+                    }
+                });
+                WorldGen.PlaceTile(cx, Ystart, TileID.Platforms, false, false, -1, 13);
+
+                
+
 
                 });
-            }).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+            }).ContinueWith((d) => FinishGen());
 
         }
         public static Task AsyncGenerateIsland(int island, int posX, int posY)
         {
             WorldRefill.isTaskRunning = true;
-            switch (island)
+            WorldRefill.realcount = 1;
+            return Task.Run(() =>
             {
-                case 0:
-                    WorldGen.CloudIsland(posX, posY);
-                    WorldGen.SpreadGrass(posX, posY - 7);
+                switch (island)
+                {
+                    case 0:
+                        WorldGen.CloudIsland(posX, posY);
+                        
+                        for(int x = posX-20; x< posX+20; x++)
+                        {
+                            int cloudsurface()
+                            {
+                                int cY = posY;
+                                while (Main.tile[x, cY].active())
+                                {
+                                    cY--;
+                                }
+                                cY++;
+                                return cY;
 
-                    break;
-                case 1:
-                    WorldGen.DesertCloudIsland(posX, posY);
+                            };
+                            WorldGen.SpreadGrassDirect(posX, cloudsurface());
+                            
+                        }
+                        
+                           
+                        
+                        WorldGen.IslandHouse(posX, posY - 6, WorldGen.floatingIslandStyle[WorldGen.genRand.Next(0, WorldGen.floatingIslandStyle.Count() - 1)]);
 
-                    break;
+                        break;
+                    case 1:
+                        WorldGen.DesertCloudIsland(posX, posY);
+                        WorldGen.IslandHouse(posX, posY - 6, WorldGen.floatingIslandStyle[WorldGen.genRand.Next(0, WorldGen.floatingIslandStyle.Count() - 1)]);
 
-                case 2:
+                        break;
 
-                    WorldGen.SnowCloudIsland(posX, posY);
+                    case 2:
+
+                        WorldGen.SnowCloudIsland(posX, posY);
+                        WorldGen.IslandHouse(posX, posY - 6, WorldGen.floatingIslandStyle[WorldGen.genRand.Next(0, WorldGen.floatingIslandStyle.Count() - 1)]);
 
 
-                    break;
+                        break;
+                    case 3:
+                        WorldGen.CloudLake(posX, posY);
+                        break;
 
 
-            }
-            return Task.Run(() => WorldGen.IslandHouse(posX, posY - 6, WorldGen.floatingIslandStyle[WorldGen.genRand.Next(0, WorldGen.floatingIslandStyle.Count() - 1)])).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+                }
+            }).ContinueWith((d) => FinishGen());
         }
         public static Task AsyncGenerateDungeon(int posX, int posY)
         {
             WorldRefill.isTaskRunning = true;
+            WorldRefill.realcount = 1;
 
-            return Task.Run(() => WorldGen.MakeDungeon(posX, posY)).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+            return Task.Run(() => WorldGen.MakeDungeon(posX, posY)).ContinueWith((d) => FinishGen());
 
 
 
@@ -873,20 +895,55 @@ namespace WorldRefill
         public static Task<bool> AsyncGeneratePyramid(int posX, int posY)
         {
             WorldRefill.isTaskRunning = true;
-            Task.Run(() => WorldGen.Pyramid(posX, posY)).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+            WorldRefill.realcount = 1;
+            Task.Run(() => WorldGen.Pyramid(posX, posY)).ContinueWith((d) => FinishGen());
             return Task.FromResult(WorldGen.Pyramid(posX, posY));
         }
         public static Task AsyncGenerateMinehouse(int posX, int posY)
         {
             WorldRefill.isTaskRunning = true;
-            return Task.Run(() => WorldGen.MineHouse(posX, posY)).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+            WorldRefill.realcount = 1;
+            return Task.Run(() => WorldGen.MineHouse(posX, posY)).ContinueWith((d) => FinishGen());
         }
-        public static Task AsyncGenerateWorld()
+        public static Task AsyncGenerateWorld(int seed)
         {
             WorldRefill.isTaskRunning = true;
+            WorldRefill.realcount = 1;
+            
+                if (Config.ConfigFile.UseInfiniteChests)
+                {
+                    InfChestsDatabase WRConn = new InfChestsDatabase();
+                    WRConn.DeleteChests(Main.worldID);
+                }
+            
             WorldGen.clearWorld();
-            return Task.Run(() => WorldGen.GenerateWorld(WorldGen._lastSeed)).ContinueWith((d) => { WorldRefill.isTaskRunning = false; });
+           
+            return Task.Run(() => WorldGen.GenerateWorld(seed)).ContinueWith((d) => FinishGen());
 
+        }
+        public static void FinishGen()
+        {
+            WorldRefill.isTaskRunning = false;
+            
+            if (WorldRefill.realcount != 0)
+            {
+                foreach (TSPlayer player in TShock.Players)
+                {
+                    if (player != null)
+                    {
+                        NetMessage.PlayNetSound(new NetMessage.NetSoundInfo(player.TPlayer.position, 1, 0, 10, -16));
+                        
+                    }
+                }
+            }
+            if (Config.ConfigFile.UseInfiniteChests)
+            {
+                InfChestsDatabase WRConn = new InfChestsDatabase();
+                WRConn.AddChests();
+                Console.WriteLine("Converted Some Chests");
+                TShock.Utils.SaveWorld();
+            }
+            
         }
 
     }
