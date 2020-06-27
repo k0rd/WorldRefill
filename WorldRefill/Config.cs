@@ -125,7 +125,7 @@ namespace WorldRefill
                         {
                             var configString = sr.ReadToEnd();
                             ConfigFile = JsonConvert.DeserializeObject<Config>(configString);
-                            Console.WriteLine(ConfigFile.UseInfiniteChests);
+                            
                         }
                         stream.Close();
                     }

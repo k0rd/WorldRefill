@@ -37,12 +37,12 @@ namespace WorldRefill
                                 TShock.Config.MySqlUsername,
                                 TShock.Config.MySqlPassword)
                         };
-                        Console.WriteLine($"Connection Established with {ChestDB}");
+                        
                         break;
                     case "sqlite":
-                        string sql = Path.Combine(Config.savepath, "InfChests3.sqlite");
+                        string sql = Path.Combine(TShock.SavePath, "InfChests3.sqlite");
                         ChestDB = new SqliteConnection(string.Format("uri=file://{0},Version=3", sql));
-                        Console.WriteLine("Connetion Established");
+                        
                         break;
                 }
             }
@@ -78,10 +78,10 @@ namespace WorldRefill
 
                         }
                         string items = iteminfo.ToString();
-                        Console.WriteLine(items);
+                        
 
                         string query = $"INSERT INTO InfChests3 (UserID, X, Y, Items, Public, Users, Groups, Refill, WorldID) VALUES ({-1}, {Main.chest[i].x}, {Main.chest[i].y}, '{items}', {0},'{string.Join(",", new List<int>())}','{string.Join(",", new List<string>())}',{-1},{Main.worldID});";
-                        Console.WriteLine(query);
+                        
                         ChestDB.Query(query);
                         Main.chest[i] = null;
                     }

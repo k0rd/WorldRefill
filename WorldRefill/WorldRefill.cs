@@ -48,7 +48,7 @@ namespace WorldRefill
         #region Plugin Info
         public override Version Version
         {
-            get { return new Version(2, 1, 0); }
+            get { return new Version(2, 1, 3); }
         }
         public override string Name
         {
@@ -1067,7 +1067,7 @@ namespace WorldRefill
 
 
                     break;
-
+                #endregion
                 #region Floating Island
 
                 case "island":
@@ -1138,7 +1138,7 @@ namespace WorldRefill
                 #endregion
 
                 #region Chests
-           /*     case "chests":
+              /*  case "chests":
                     
                         if (args.Parameters.Count == 0 || args.Parameters.Count > 2)
                         {
@@ -1210,7 +1210,7 @@ namespace WorldRefill
                                 if (setting == "default")
                                 {
                                     // Moved item list into a separate .txt file
-                                    int[] itemID = Config.config.DefaultChestIDs;
+                                    int[] itemID = Config.ConfigFile.DefaultChestIDs;
                                     contain = itemID[WorldGen.genRand.Next(0, itemID.Length)];
                                 }
                                 else if (setting == "all")
@@ -1229,9 +1229,10 @@ namespace WorldRefill
                                 }
                                 tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
                                 tryY = WorldGen.genRand.Next((int)Main.worldSurface, Main.maxTilesY - 200);
-                                if (!Config.config.GenInsideProtectedRegions && IsProtected(tryX, tryY))
+                                if (!Config.ConfigFile.GenInsideProtectedRegions && IsProtected(tryX, tryY))
                                     continue;
                                 while (!Main.tile[tryX, tryY].active())
+                                
                                 {
                                     tryY++;
                                 }
@@ -1245,7 +1246,7 @@ namespace WorldRefill
                                 {
                                     chestcount++;
                                     newcount++;
-                                    if (Config.config.UseInfiniteChests)
+                                    if (Config.ConfigFile.UseInfiniteChests)
                                     {
 
                                         StringBuilder items = new StringBuilder();
@@ -1280,7 +1281,7 @@ namespace WorldRefill
 
                                 tries++;
                             }
-                            if (Config.config.UseInfiniteChests)
+                            if (Config.ConfigFile.UseInfiniteChests)
                                 ChestDB.Dispose();
                             args.Player.SendSuccessMessage("Generated {0} new chests - {1} total", newcount, chestcount);
                             InformPlayers(args.Player.Name,args.Parameters[0]);
@@ -1292,7 +1293,7 @@ namespace WorldRefill
 
 
 
-                #endregion
+                
 
 
 
@@ -1306,7 +1307,7 @@ namespace WorldRefill
                     #endregion
             }
             
-
+            
         }
 
 
