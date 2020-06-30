@@ -15,7 +15,7 @@ namespace WorldRefill
 {
     class AdvancedRegen
     {
-        
+        // Planned to House Temple and other complex structures in this file.
         public static string ProcessSeed(string processedSeed)
         {
             

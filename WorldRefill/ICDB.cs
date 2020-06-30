@@ -13,13 +13,18 @@ using System.Security.Cryptography.X509Certificates;
 using System.Collections.Generic;
 using Terraria.GameContent.Bestiary;
 using System.Reflection.Emit;
+using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
+using Microsoft.Xna.Framework;
 
 namespace WorldRefill
 {
-    public class InfChestsDatabase
+    public class InfChestsDatabase : IDisposable
     {
 
         private IDbConnection ChestDB;
+        private bool _disposed = false;
+        private SafeHandle _safeHandle = new SafeFileHandle(IntPtr.Zero, true);
         public InfChestsDatabase()
         {
             try
@@ -37,18 +42,19 @@ namespace WorldRefill
                                 TShock.Config.MySqlUsername,
                                 TShock.Config.MySqlPassword)
                         };
-                        
+
                         break;
                     case "sqlite":
                         string sql = Path.Combine(TShock.SavePath, "InfChests3.sqlite");
                         ChestDB = new SqliteConnection(string.Format("uri=file://{0},Version=3", sql));
                         
+
                         break;
                 }
             }
             catch (Exception e)
             {
-                File.AppendAllText(Path.Combine(Config.savepath, "WRLog.txt"), $"[{DateTime.Now}] / [WR ERROR] FAILED TO CONNECT TO DATABASE, EXCEPTION : {e.Message}\t IS THE MYSQL DATABASE ON?\n");
+                File.AppendAllText(Path.Combine(Config.savepath, "WRLog.txt"), $"[{DateTime.UtcNow}] / [WR ERROR] FAILED TO CONNECT TO DATABASE, EXCEPTION : {e.Message}\t IS THE MYSQL DATABASE ON?\n");
             }
 
         }
@@ -64,8 +70,8 @@ namespace WorldRefill
         {
             return Task.Run(() =>
             {
-            
-            for (int i = 0; i < Main.chest.Length; i++)
+
+                for (int i = 0; i < Main.chest.Length; i++)
                 {
                     if (Main.chest[i] != null)
                     {
@@ -73,15 +79,15 @@ namespace WorldRefill
                         iteminfo.Append("~");
                         foreach (Item item in Main.chest[i].item)
                         {
-                           string temp = $"{item.netID},{item.stack},{item.prefix}~";
+                            string temp = $"{item.netID},{item.stack},{item.prefix}~";
                             iteminfo.Append(temp);
 
                         }
                         string items = iteminfo.ToString();
-                        
+
 
                         string query = $"INSERT INTO InfChests3 (UserID, X, Y, Items, Public, Users, Groups, Refill, WorldID) VALUES ({-1}, {Main.chest[i].x}, {Main.chest[i].y}, '{items}', {0},'{string.Join(",", new List<int>())}','{string.Join(",", new List<string>())}',{-1},{Main.worldID});";
-                        
+
                         ChestDB.Query(query);
                         Main.chest[i] = null;
                     }
@@ -90,34 +96,60 @@ namespace WorldRefill
             });
 
         }
-        public Task<List<Chest>> GetChests()
+       
+        public Task<List<Point>> PruneChests()
         {
             return Task.Run(() =>
             {
-                string query = $"SELECT * FROM InfChests3 WHERE WorldID = {Main.worldID};";
-                using (var reader = ChestDB.QueryReader(query))
-
+                StringBuilder sb = new StringBuilder();
+                sb.Append("~");
+                for (int i = 0; i < Chest.maxItems; i++)
                 {
-                    List<Chest> chests = new List<Chest>();
+                    sb.Append("0,0,0~");
+                }
+                string emptychest = sb.ToString();
+
+                List<Point> points = new List<Point>();
+
+                string query = $"SELECT * FROM InfChests3 WHERE Items = '{emptychest}' AND WorldID = {Main.worldID} AND Refill = -1;";
+                using (var reader = ChestDB.QueryReader(query))
+                {
                     while (reader.Read())
                     {
-                        Chest chest = new Chest()
-                        {
-                            x = reader.Get<int>("X"),
-                            y = reader.Get<int>("Y")
-
-                        };
-                        chests.Add(chest);
-
+                        Point point = new Point(reader.Get<int>("X"), reader.Get<int>("Y"));
+                        points.Add(point);
                     }
-                    return Task.FromResult(chests);
                 }
 
+                query = $"DELETE FROM InfChests3 WHERE Items = '{emptychest}' AND WorldID = {Main.worldID} AND Refill = -1;";
+                
+                ChestDB.Query(query);
+                return Task.FromResult(points);
             });
+
         }
-       
 
 
+        public void Dispose()
+        {
+            ChestDB.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
 
+            if (disposing)
+            {
+                // Dispose managed state (managed objects).
+                _safeHandle?.Dispose();
+            }
+
+            _disposed = true;
+        }
     }
 }

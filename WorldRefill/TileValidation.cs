@@ -100,7 +100,7 @@ namespace WorldRefill
         }
         public static bool inWorld(int X, int Y)
         {
-            if (X > 250 && X < Main.maxTilesX - 250 && Y > 125 && Y <= Main.rockLayer) return true; // checks to see if player is near world border
+            if (X > 250 && X < Main.maxTilesX - 250 && Y > 125 && Y <= Main.UnderworldLayer) return true; // checks to see if player is near world border
             else return false;
         }
 

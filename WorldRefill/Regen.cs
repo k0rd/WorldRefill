@@ -16,20 +16,28 @@ using System.Runtime.InteropServices;
 using TerrariaApi.Server;
 using System.Text;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework;
+using System.Security.Cryptography.X509Certificates;
+using Terraria.WorldBuilding;
+using WorldRefill.MicroBiomeExtensions;
+using Terraria.GameContent.Biomes.CaveHouse;
+using Terraria.GameContent.Biomes;
 
 namespace WorldRefill
 {
     static class Regen
     {
+        private static StructureMap structures = new StructureMap();
 
-        
+        private static WorldGenConfiguration configuration = WorldGenConfiguration.FromEmbeddedPath("Terraria.GameContent.WorldBuilding.Configuration.json");
+
         public static Task AsyncGenLifeCrystals(short amount)
         {
             WorldRefill.isTaskRunning = true;
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
                     if (WorldGen.AddLifeCrystal(WorldGen.genRand.Next(1, Main.maxTilesX), WorldGen.genRand.Next((int)(Main.rockLayer), (int)(Main.UnderworldLayer + 100))))
                     {
@@ -50,7 +58,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
                     int tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
 
@@ -103,7 +111,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
                     int tryX = WorldGen.genRand.Next(50, Main.maxTilesX - 50);
                     int tryY = WorldGen.genRand.Next((int)Main.worldSurface + 20, Main.UnderworldLayer);
@@ -133,7 +141,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
                     int tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
                     int tryY = WorldGen.genRand.Next((int)Main.worldSurface + 10, (int)Main.rockLayer);
@@ -164,7 +172,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
                     int tryX = WorldGen.genRand.Next(200, Main.maxTilesX - 200);
                     int tryY = WorldGen.genRand.Next((int)Main.worldSurface, Main.UnderworldLayer - 100);
@@ -187,7 +195,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
 
                 {
                     int tryX = WorldGen.genRand.Next(250, Main.maxTilesX - 250);
@@ -215,7 +223,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
 
                 {
                     int tryX = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
@@ -241,7 +249,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
 
                 {
                     int tryX = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
@@ -268,7 +276,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
 
                     int tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
@@ -316,7 +324,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
 
                     int tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
@@ -371,7 +379,7 @@ namespace WorldRefill
 
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
 
                     int X = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
@@ -586,7 +594,7 @@ namespace WorldRefill
 
 
                 }
-                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
                     //Get random number from 100 tiles each side
                     int X = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
@@ -618,7 +626,7 @@ namespace WorldRefill
             WorldRefill.isTaskRunning = true;
             int realcount = 0;
             return Task.Run(() => {
-                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
                     int tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
                     int tryY = WorldGen.genRand.Next(50, Main.UnderworldLayer);
@@ -683,7 +691,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount <= Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
                     int tryX = WorldGen.genRand.Next(200, Main.maxTilesX - 200);
                     int tryY = WorldGen.genRand.Next((int)Main.worldSurface - 150, Main.UnderworldLayer);
@@ -899,17 +907,12 @@ namespace WorldRefill
             Task.Run(() => WorldGen.Pyramid(posX, posY)).ContinueWith((d) => FinishGen());
             return Task.FromResult(WorldGen.Pyramid(posX, posY));
         }
-        public static Task AsyncGenerateMinehouse(int posX, int posY)
-        {
-            WorldRefill.isTaskRunning = true;
-            WorldRefill.realcount = 1;
-            return Task.Run(() => WorldGen.MineHouse(posX, posY)).ContinueWith((d) => FinishGen());
-        }
+
         public static Task AsyncGenerateWorld(int seed)
         {
             WorldRefill.isTaskRunning = true;
             WorldRefill.realcount = 1;
-            
+           
                 if (Config.ConfigFile.UseInfiniteChests)
                 {
                     InfChestsDatabase WRConn = new InfChestsDatabase();
@@ -921,7 +924,155 @@ namespace WorldRefill
             return Task.Run(() => WorldGen.GenerateWorld(seed)).ContinueWith((d) => FinishGen());
 
         }
-        public static void FinishGen()
+        private static Task AsyncRemoveEmptyChests()
+        {
+            return Task.Run(() =>
+            {
+                WorldRefill.isTaskRunning = true;
+                
+
+                if (!Config.ConfigFile.UseInfiniteChests)
+                {
+                    for (int x = 0; x < Main.chest.Length; x++)
+                    {
+                        if (Main.chest[x] != null)
+                        {
+
+                            bool found = false;
+                            foreach (Item itm in Main.chest[x].item)
+                                if (itm.netID != 0)
+                                    found = true;
+                            if (found == false)
+                            {
+
+                                
+                                WorldGen.KillTile(Main.chest[x].x, Main.chest[x].y, noItem: true);
+                                Main.chest[x] = null;
+
+                            }
+
+                        }
+
+                    }
+
+
+                }
+                else
+                {
+                    InfChestsDatabase WRConn = new InfChestsDatabase();
+
+                    List<Point> EmpChestCoords = WRConn.PruneChests().Result;
+                    foreach (Point point in EmpChestCoords)
+                    {
+                        
+                        WorldGen.KillTile(point.X, point.Y, noItem: true);
+                        
+                    }
+
+                }
+                
+            });
+        }
+        public static Task AsyncGenerateChests(int amount)
+        {
+            WorldRefill.isTaskRunning = true;
+            AsyncRemoveEmptyChests();
+            return Task.Run(() =>
+            {
+                int realcount = 0;
+                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
+                {
+                    int contain;
+                    contain = 0;
+
+
+                    int tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
+                    int tryY = WorldGen.genRand.Next((int)Main.worldSurface, Main.maxTilesY - 200);
+
+                    while (!Main.tile[tryX, tryY].active())
+
+                    {
+                        tryY++;
+                    }
+                    tryY--;
+                    WorldGen.KillTile(tryX, tryY, noItem: true);
+                    WorldGen.KillTile(tryX + 1, tryY, noItem: true);
+                    WorldGen.KillTile(tryX, tryY + 1, noItem: true);
+                    WorldGen.KillTile(tryX + 1, tryY, noItem: true);
+
+                    if (WorldGen.AddBuriedChest(tryX, tryY, contain, true, 1))
+                    {
+
+                        realcount++;
+                        if (realcount == amount) break;
+                    }
+                    WorldRefill.realcount = realcount;
+                }
+            }).ContinueWith((d) => FinishGen());
+        }
+        public static Task AsyncGenerateHive(int posX, int posY)
+        {
+            WorldRefill.isTaskRunning = true;
+            int realcount = 1;
+            return Task.Run(() =>
+            {
+                HiveBiomeExtensions hive = configuration.CreateBiome<HiveBiomeExtensions>();
+                hive.Place(new Point(posX, posY), structures);
+                WorldRefill.realcount = realcount;
+            }).ContinueWith((d) => FinishGen());
+
+           
+        }
+        public static Task AsyncGenerateHouse(int posX, int posY)
+        {
+            WorldRefill.isTaskRunning = true;
+            int realcount = 1;
+            return Task.Run(() =>
+            {
+                CaveHouseBiomeExtensions house = configuration.CreateBiome<CaveHouseBiomeExtensions>();
+                house.Place(new Point(posX, posY), structures);
+                WorldRefill.realcount = realcount;
+            }).ContinueWith((d) => FinishGen());
+        }
+        public static Task AsyncGenerateLivingTree(int posX, int posY)
+        {
+            WorldRefill.isTaskRunning = true;
+            int realcount = 1;
+            return Task.Run(() =>
+            {
+                WorldGenExtensions.GrowLivingTree(posX, posY);
+                WorldRefill.realcount = realcount;
+            }).ContinueWith((d) => FinishGen());
+        }
+        public static Task AsyncGenerateGranite(int posX, int posY)
+        {
+            WorldRefill.isTaskRunning = true;
+            int realcount = 1;
+            return Task.Run(() =>
+            {
+                GraniteBiomeExtensions granite = configuration.CreateBiome<GraniteBiomeExtensions>();
+                granite.Place(new Point(posX, posY), structures);
+                WorldRefill.realcount = realcount;
+
+            }).ContinueWith((d) => FinishGen());
+        }
+        public static Task AsyncGenerateMarble(int posX, int posY)
+        {
+            WorldRefill.isTaskRunning = true;
+            int realcount = 1;
+            return Task.Run(() =>
+            {
+                MarbleBiomeExtensions marble = configuration.CreateBiome<MarbleBiomeExtensions>();
+                marble.Place(new Point(posX, posY), structures);
+                WorldRefill.realcount = realcount;
+
+            }).ContinueWith((d) => FinishGen());
+        }
+
+
+
+
+        private static void FinishGen()
         {
             WorldRefill.isTaskRunning = false;
             
@@ -936,11 +1087,11 @@ namespace WorldRefill
                     }
                 }
             }
-            if (Config.ConfigFile.UseInfiniteChests)
+            if (Config.ConfigFile.UseInfiniteChests && Main.chest.Where(p => p != null).Count() > 0)
             {
                 InfChestsDatabase WRConn = new InfChestsDatabase();
                 WRConn.AddChests();
-                Console.WriteLine("Converted Some Chests");
+                WRConn.Dispose();
                 TShock.Utils.SaveWorld();
             }
             

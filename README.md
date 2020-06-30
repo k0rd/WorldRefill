@@ -9,7 +9,7 @@ This plugin has been vastly improved from the original and comes with a number o
 natural world whilst having all the resources you could want without ruining it, however this is up to the user to decide.
 
 I cannot stress this enough, please do not give this command to users, at current this plugin does not work with tshock regions and performing the /gen world command
-could destroy your spawn etc.
+could destroy your spawn etc. More on this, most structure commands will be very hard to prevent houses being destroyed as the actual modification of tiles is done by the server directly.
 
 Please use with care!
 
@@ -23,8 +23,8 @@ Most importantly though, have fun!
 | genrewind | tba | tba |
 
 
-## Options List
-| Option	|Description		|Usage	|
+## Resources List
+| Resource	|Description		|Usage	|
 | :-------------: |:-------------:| :-----:|
 | crystals   | Life Crystals |/gen crystals (number of crystals) |
 | pots  | Pots |/gen pots (number of pots) |
@@ -38,13 +38,29 @@ Most importantly though, have fun!
 | ores | Ores |/gen ores (number of ores) [type of ore] |
 | webs | Spawns Webs in Spider biomes |/gen webs (number of webs) |
 | shrooms | Spawns mushrooms in their respective biome |/gen shrooms (number of shrooms) |
+| chests | Spawns chests randomly in the world! |/gen chests (number of chests) |
+
+
+## Structures List
+| Structure	|Description		|Usage	|
+| :-------------: |:-------------:| :-----:|
 | trees | Spawns trees in the world |/gen trees |
+| livingtree | Spawns a living tree in the world| /gen livingtree |
 | dungeon | Spawns a dungeon in the world |/gen dungeon |
 | pyramid | Spawns a pyramid in the world |/gen pyramid |
-| minehouse | Spawns a minehouse in the world |/gen minehouse |
 | hellevator | Spawns a hellevator in the world |/gen hellevator |
+| cavehouse | Spawns a cavehouse in the world!|/gen cavehouse |
 | island | Spawns a floating island in the world |/gen island (type of island) |
 | world | Resets the World to its original state! | /gen world true [seed] |
+
+
+## Biomes List
+| Biome	|Description		|Usage	|
+| :-------------: |:-------------:| :-----:|
+| hive | Spawns a hive in the world |/gen hive |
+| granite | Spawns a granite biome in the world |/gen granite |
+| marble | Spawns a marble biome in the world |/gen marble |
+
 
 
 ## Permissions 🚫
@@ -164,6 +180,21 @@ of the config has been moved to Config.cs.
 	
 	* Removed Debug information that i accidentally left in :P
 
+	* Chests have been added.
+
+* 2.2.0
+	* Added Biome Extensions meaning that we can now generate mini biomes such as hive and arkhalis spawns etc!
+
+	* Hive has been added
+
+	* Minehouse has been removed and replaced with Cavehouse, this is a much better version of Minehouse and spawns differently depending on biome!
+
+	* Living Tree is now fixed, it now works!
+
+	* Granite Biome has been added
+
+	* Marble Biome has been added
+
 	
 
 	
@@ -171,7 +202,7 @@ of the config has been moved to Config.cs.
 
 ## Currently Working On!
 
-* Chests, everything Chests, full infchests support!
+* Biome implementation
 
 
 
@@ -181,10 +212,6 @@ of the config has been moved to Config.cs.
 
 
 * Temple (this one will be difficult)
-
-* Living Trees (will also be difficult)
-
-* Chests (will also be difficult lol)
 
 * Anything else that has been added to 1.4/ Suggestions from external testers?
 
