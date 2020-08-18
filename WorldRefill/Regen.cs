@@ -34,17 +34,22 @@ namespace WorldRefill
         public static Task AsyncGenLifeCrystals(short amount)
         {
             WorldRefill.isTaskRunning = true;
+            int tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
+            int tryY = WorldGen.genRand.Next((int)Main.rockLayer, (int)(Main.UnderworldLayer + 100));
             int realcount = 0;
             return Task.Run(() =>
             {
                 for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
                 {
-                    if (WorldGen.AddLifeCrystal(WorldGen.genRand.Next(1, Main.maxTilesX), WorldGen.genRand.Next((int)(Main.rockLayer), (int)(Main.UnderworldLayer + 100))))
+                    if (!WorldRefill.IsProtected(tryX, tryY))
                     {
+                        if (WorldGen.AddLifeCrystal(tryX,tryY))
+                        {
 
-                        realcount++;
-                        //Determine if enough Objects have been generated
-                        if (realcount == amount) break;
+                            realcount++;
+                            //Determine if enough Objects have been generated
+                            if (realcount == amount) break;
+                        }
                     }
 
                 }
@@ -69,6 +74,7 @@ namespace WorldRefill
                     int tile = (int)Main.tile[tryX, tryY + 1].type;
                     int wall = (int)Main.tile[tryX, tryY].wall;
                     int style = WorldGen.genRand.Next(0, 4);
+                    
                     if (tile == 147 || tile == 161 || tile == 162)
                         style = WorldGen.genRand.Next(4, 7);
                     if (tile == 60)
@@ -90,15 +96,18 @@ namespace WorldRefill
                     if (tryY > Main.UnderworldLayer)
                         style = WorldGen.genRand.Next(13, 16);
 
-
-                    if (!WorldGen.oceanDepths(tryX, tryY) && WorldGen.PlacePot(tryX, tryY, 28, (int)style))
+                    if (!WorldRefill.IsProtected(tryX, tryY))
                     {
 
+                        if (!WorldGen.oceanDepths(tryX, tryY) && WorldGen.PlacePot(tryX, tryY, 28, (int)style))
+                        {
 
-                        realcount++;
-                        if (realcount == amount) break;
+
+                            realcount++;
+                            if (realcount == amount) break;
 
 
+                        }
                     }
 
                 }
@@ -116,7 +125,7 @@ namespace WorldRefill
                     int tryX = WorldGen.genRand.Next(50, Main.maxTilesX - 50);
                     int tryY = WorldGen.genRand.Next((int)Main.worldSurface + 20, Main.UnderworldLayer);
 
-                    if ((!Main.tile[tryX, tryY].active()) && ((Main.tile[tryX, tryY].wall == WallID.EbonstoneUnsafe) || (Main.tile[tryX, tryY].wall == WallID.CrimstoneUnsafe)))
+                    if ((!Main.tile[tryX, tryY].active()) && ((Main.tile[tryX, tryY].wall == WallID.EbonstoneUnsafe) || (Main.tile[tryX, tryY].wall == WallID.CrimstoneUnsafe) && !WorldRefill.IsProtected(tryX,tryY)))
                     {
                         WorldGen.AddShadowOrb(tryX, tryY);
 
@@ -146,7 +155,7 @@ namespace WorldRefill
                     int tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
                     int tryY = WorldGen.genRand.Next((int)Main.worldSurface + 10, (int)Main.rockLayer);
 
-                    if ((!Main.tile[tryX, tryY].active()) && ((Main.tile[tryX, tryY].wall == WallID.EbonstoneUnsafe) || (Main.tile[tryX, tryY].wall == WallID.CrimstoneUnsafe)))
+                    if ((!Main.tile[tryX, tryY].active()) && ((Main.tile[tryX, tryY].wall == WallID.EbonstoneUnsafe) || (Main.tile[tryX, tryY].wall == WallID.CrimstoneUnsafe) && !WorldRefill.IsProtected(tryX, tryY)))
                     {
 
                         if (!WorldGen.crimson) WorldGen.Place3x2(tryX, tryY, TileID.DemonAltar);
@@ -177,13 +186,17 @@ namespace WorldRefill
                     int tryX = WorldGen.genRand.Next(200, Main.maxTilesX - 200);
                     int tryY = WorldGen.genRand.Next((int)Main.worldSurface, Main.UnderworldLayer - 100);
                     var type = WorldGen.genRand.Next(-1, 1);
-                    if (Main.tile[tryX, tryY].wall == WallID.None && WorldGen.placeTrap(tryX, tryY, type))
+                    if (!WorldRefill.IsProtected(tryX, tryY))
                     {
-                        realcount++;
-                        if (realcount == amount)
-                            break;
-                    }
 
+
+                        if (Main.tile[tryX, tryY].wall == WallID.None && WorldGen.placeTrap(tryX, tryY, type))
+                        {
+                            realcount++;
+                            if (realcount == amount)
+                                break;
+                        }
+                    }
 
                 }
                 WorldRefill.realcount = realcount;
@@ -201,11 +214,13 @@ namespace WorldRefill
                     int tryX = WorldGen.genRand.Next(250, Main.maxTilesX - 250);
                     int tryY = WorldGen.genRand.Next((int)Main.worldSurface, Main.UnderworldLayer);
 
-
-                    if (WorldGen.mayanTrap(tryX, tryY))
+                    if (!WorldRefill.IsProtected(tryX, tryY))
                     {
-                        realcount++;
-                        if (realcount == amount) break;
+                        if (WorldGen.mayanTrap(tryX, tryY))
+                        {
+                            realcount++;
+                            if (realcount == amount) break;
+                        }
                     }
 
 
@@ -230,13 +245,15 @@ namespace WorldRefill
                     int tryY = WorldGen.genRand.Next(750, Main.UnderworldLayer);
 
 
-
-
-                    if (WorldGen.placeLavaTrap(tryX, tryY))
+                    if (!WorldRefill.IsProtected(tryX, tryY))
                     {
 
-                        realcount++;
-                        if (realcount == amount) break;
+                        if (WorldGen.placeLavaTrap(tryX, tryY))
+                        {
+
+                            realcount++;
+                            if (realcount == amount) break;
+                        }
                     }
 
                 }
@@ -255,14 +272,18 @@ namespace WorldRefill
                     int tryX = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
                     int tryY = WorldGen.genRand.Next((int)Main.worldSurface, Main.UnderworldLayer);
 
-
-
-
-                    if (WorldGen.PlaceSandTrap(tryX, tryY))
+                    if (!WorldRefill.IsProtected(tryX, tryY))
                     {
 
-                        realcount++;
-                        if (realcount == amount) break;
+
+
+
+                        if (WorldGen.PlaceSandTrap(tryX, tryY))
+                        {
+
+                            realcount++;
+                            if (realcount == amount) break;
+                        }
                     }
 
 
@@ -286,31 +307,33 @@ namespace WorldRefill
 
 
 
-
-
-
-                    while (!TileValidation.StatueTileValidation(tryX, tryY))
-                    {
-                        tryY++;
-                        if (tryY >= Main.UnderworldLayer)
-                        {
-                            break;
-                        }
-                    }
-
-                    if (tryY < Main.UnderworldLayer && (!TileValidation.isinNonNaturalStatuePlace(Main.tile[tryX, tryY + 1].type)))
+                    if (!WorldRefill.IsProtected(tryX, tryY))
                     {
 
 
-
-                        WorldGen.PlaceTile(tryX, tryY, randstatue.X, true, true, -1, randstatue.Y);
-
-                        if (Main.tile[tryX, tryY].type == randstatue.X)
+                        while (!TileValidation.StatueTileValidation(tryX, tryY))
                         {
-
-                            realcount++;
-                            if (realcount == amount)
+                            tryY++;
+                            if (tryY >= Main.UnderworldLayer)
+                            {
                                 break;
+                            }
+                        }
+
+                        if (tryY < Main.UnderworldLayer && (!TileValidation.isinNonNaturalStatuePlace(Main.tile[tryX, tryY + 1].type)))
+                        {
+
+
+
+                            WorldGen.PlaceTile(tryX, tryY, randstatue.X, true, true, -1, randstatue.Y);
+
+                            if (Main.tile[tryX, tryY].type == randstatue.X)
+                            {
+
+                                realcount++;
+                                if (realcount == amount)
+                                    break;
+                            }
                         }
                     }
 
@@ -334,31 +357,33 @@ namespace WorldRefill
 
 
 
-
-
-
-                    while (!TileValidation.StatueTileValidation(tryX, tryY))
-                    {
-                        tryY++;
-                        if (tryY >= Main.UnderworldLayer)
-                        {
-                            break;
-                        }
-                    }
-
-                    if (tryY < Main.UnderworldLayer && (!TileValidation.isinNonNaturalStatuePlace(Main.tile[tryX, tryY + 1].type)))
+                    if (!WorldRefill.IsProtected(tryX, tryY))
                     {
 
 
-
-                        WorldGen.PlaceTile(tryX, tryY, tileid, true, true, -1, style);
-
-                        if (Main.tile[tryX, tryY].type == tileid)
+                        while (!TileValidation.StatueTileValidation(tryX, tryY))
                         {
-
-                            realcount++;
-                            if (realcount == amount)
+                            tryY++;
+                            if (tryY >= Main.UnderworldLayer)
+                            {
                                 break;
+                            }
+                        }
+
+                        if (tryY < Main.UnderworldLayer && (!TileValidation.isinNonNaturalStatuePlace(Main.tile[tryX, tryY + 1].type)))
+                        {
+
+
+
+                            WorldGen.PlaceTile(tryX, tryY, tileid, true, true, -1, style);
+
+                            if (Main.tile[tryX, tryY].type == tileid)
+                            {
+
+                                realcount++;
+                                if (realcount == amount)
+                                    break;
+                            }
                         }
                     }
 
@@ -478,7 +503,7 @@ namespace WorldRefill
                     //Gets random number based on minimum spawn point to maximum depth of map
                     int Y = WorldGen.genRand.Next((int)minY, (int)maxY);
 
-                    if (TileValidation.TileOreValidation(Main.tile[X, Y], oreID))
+                    if (TileValidation.TileOreValidation(Main.tile[X, Y], oreID) && !WorldRefill.IsProtected(X, Y))
                     {
                         WorldGen.OreRunner(X, Y, (double)WorldGen.genRand.Next(minSpread, maxSpread), WorldGen.genRand.Next(minFrequency, maxFrequency), oreID);
 
@@ -601,7 +626,7 @@ namespace WorldRefill
                     //Gets random number based on minimum spawn point to maximum depth of map
                     int Y = WorldGen.genRand.Next((int)minY, (int)maxY);
 
-                    if (TileValidation.TileOreValidation(Main.tile[X, Y], oreID))
+                    if (TileValidation.TileOreValidation(Main.tile[X, Y], oreID) && !WorldRefill.IsProtected(X, Y))
                     {
 
                         WorldGen.OreRunner(X, Y, (double)WorldGen.genRand.Next(minSpread, maxSpread), WorldGen.genRand.Next(minFrequency, maxFrequency), oreID);
@@ -647,7 +672,7 @@ namespace WorldRefill
                     }
 
 
-                    if ((tryY < Main.UnderworldLayer) && (tryY > 50))
+                    if ((tryY < Main.UnderworldLayer) && (tryY > 50) && !WorldRefill.IsProtected(tryX, tryY))
                     {
 
                         WorldGen.TileRunner(tryX, tryY, (double)WorldGen.genRand.Next(4, 11), WorldGen.genRand.Next(2, 4), 51, true, (float)direction, -1f, false, false);
@@ -656,7 +681,7 @@ namespace WorldRefill
                         if (realcount == amount)
                             break;
                     }
-                    trycount++;
+                    
 
                 }
                 WorldRefill.realcount = realcount;
@@ -666,7 +691,7 @@ namespace WorldRefill
         {
             WorldRefill.isTaskRunning = true;
             WorldRefill.realcount = 1;
-            int count = 0;
+            
             for (int counter = 0; counter < Main.maxTilesX * 0.003; counter++)
             {
                 int tryX = WorldGen.genRand.Next(50, Main.maxTilesX - 50);
@@ -676,8 +701,10 @@ namespace WorldRefill
 
                     for (int offset = 20; offset < Main.worldSurface; offset++)
                     {
-                        WorldGen.GrowEpicTree(tick, offset);
-                        count++;
+                        if (!WorldRefill.IsProtected(tryX, tryY))
+                        {
+                            WorldGen.GrowEpicTree(tick, offset);
+                        }
                     }
                 }
 
@@ -706,7 +733,7 @@ namespace WorldRefill
                         shroom = TileValidation.GetShroom(blockbelow);
                         if (tryY < Main.worldSurface - 50) break;
                     }
-                    if (shroom != null && !Main.tile[tryX, tryY].active())
+                    if (shroom != null && !Main.tile[tryX, tryY].active() && !WorldRefill.IsProtected(tryX, tryY))
                     {
 
                         
@@ -989,25 +1016,30 @@ namespace WorldRefill
                     int tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
                     int tryY = WorldGen.genRand.Next((int)Main.worldSurface, Main.maxTilesY - 200);
 
-                    while (!Main.tile[tryX, tryY].active())
-
-                    {
-                        tryY++;
-                    }
-                    tryY--;
-                    WorldGen.KillTile(tryX, tryY, noItem: true);
-                    WorldGen.KillTile(tryX + 1, tryY, noItem: true);
-                    WorldGen.KillTile(tryX, tryY + 1, noItem: true);
-                    WorldGen.KillTile(tryX + 1, tryY, noItem: true);
-
-                    if (WorldGen.AddBuriedChest(tryX, tryY, contain, true, 1))
+                    if (!WorldRefill.IsProtected(tryX, tryY))
                     {
 
-                        realcount++;
-                        if (realcount == amount) break;
+                        while (!Main.tile[tryX, tryY].active())
+
+                        {
+                            tryY++;
+                        }
+                        tryY--;
+                        WorldGen.KillTile(tryX, tryY, noItem: true);
+                        WorldGen.KillTile(tryX + 1, tryY, noItem: true);
+                        WorldGen.KillTile(tryX, tryY + 1, noItem: true);
+                        WorldGen.KillTile(tryX + 1, tryY, noItem: true);
+
+                        if (WorldGen.AddBuriedChest(tryX, tryY, contain, true, 1))
+                        {
+
+                            realcount++;
+                            if (realcount == amount) break;
+                        }
                     }
-                    WorldRefill.realcount = realcount;
+                    
                 }
+                WorldRefill.realcount = realcount;
             }).ContinueWith((d) => FinishGen());
         }
         public static Task AsyncGenerateHive(int posX, int posY)
@@ -1068,6 +1100,17 @@ namespace WorldRefill
 
             }).ContinueWith((d) => FinishGen());
         }
+        public static Task AsyncGenerateSword(int posX, int posY)
+        {
+            WorldRefill.isTaskRunning = true;
+            int realcount = 1;
+            return Task.Run(() =>
+            {
+                EnchantedSwordBiomeExtensions sword = configuration.CreateBiome<EnchantedSwordBiomeExtensions>();
+                sword.Place(new Point(posX, posY), structures);
+                WorldRefill.realcount = realcount;
+            }).ContinueWith((d) => FinishGen());
+        }
 
 
 
@@ -1096,6 +1139,7 @@ namespace WorldRefill
             }
             
         }
+
 
     }
 }

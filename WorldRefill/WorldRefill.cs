@@ -187,7 +187,8 @@ namespace WorldRefill
         {
             "hive",
             "granite",
-            "marble"
+            "marble",
+            "terragrim"
             
         };
         private async void PrintOptions(CommandArgs args)
@@ -1225,6 +1226,25 @@ namespace WorldRefill
                     }
                     else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
                     break;
+                case "terragrim":
+                    if(!isTaskRunning)
+                    {
+                        tryX = args.Player.TileX;
+                        tryY = args.Player.TileY;
+                        if (TileValidation.inWorld(tryX, tryY) && TileValidation.onSurface(tryX,tryY))
+                        {
+                            await Regen.AsyncGenerateSword(tryX, WorldGen.genRand.Next(tryY + 40, tryY + 100));
+
+                            args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] A Terragrim Biome was Successfully Generated underneath You!");
+                            TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has Generated a Terragrim Biome in the world!", 71, 8, 185);
+                            InformPlayers(args.Player.Name, args.Parameters[0]);
+                        }
+                        else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Failed to create a Terragrim Biome in this location! You have to be away from the world borders and in the cavern layer to generate this biome!");
+                    }
+                    else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Another Generation is in Progress, Please try again later!");
+                    break;
+
+
 
 
 
@@ -1285,15 +1305,14 @@ namespace WorldRefill
         }
         #endregion
         #region IsProtected
-        bool IsProtected(int x, int y)
+        public static bool IsProtected(int x, int y)
         {
             var regions = TShock.Regions.InAreaRegion(x, y);
-            foreach (var region in regions)
+            if (regions.Count() > 0)
             {
-                if (region.DisableBuild)
-                    return true;
+                return true;
             }
-            return false;
+            else return false;
         }
 
         #endregion

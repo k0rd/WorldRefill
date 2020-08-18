@@ -69,6 +69,7 @@
   <ItemGroup>
     <Compile Include="AdvancedRegen.cs" />
     <Compile Include="ICDB.cs" />
+    <Compile Include="MicroBiomeExtensions\EnchantedSwordBiomeExtensions.cs" />
     <Compile Include="MicroBiomeExtensions\MarbleBiomeExtensions.cs" />
     <Compile Include="MicroBiomeExtensions\GraniteBiomeExtensions.cs" />
     <Compile Include="MicroBiomeExtensions\WorldGenExtensions.cs" />

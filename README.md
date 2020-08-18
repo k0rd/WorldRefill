@@ -22,7 +22,7 @@ Most importantly though, have fun!
 | Command        |Description           |Usage  |
 | ------------- |:-------------:| -----:|
 | gen      |Command Used to generate objects |/gen (option) [number required] [specific type of certain option] |
-| genrewind | tba | tba |
+
 
 
 ## Resources List
@@ -197,11 +197,14 @@ of the config has been moved to Config.cs.
 
 	* Marble Biome has been added
 
-	
+* 2.2.1
+	* Terragrim (New Arkhalis) Biome has been added
+
+	* Region Protection has been added for randomly generated amenities	
 
 	
 
-
+	
 ## Currently Working On!
 
 * Biome implementation
@@ -217,7 +220,6 @@ of the config has been moved to Config.cs.
 
 * Anything else that has been added to 1.4/ Suggestions from external testers?
 
-* World Regenerations do not affect region protected structures.
 
 
 ## Contact Info
