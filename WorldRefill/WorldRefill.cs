@@ -242,7 +242,7 @@ namespace WorldRefill
             if (structslist.Contains(args.Parameters[0].ToLowerInvariant()) || biomelist.Contains(args.Parameters[0].ToLowerInvariant()))
             {
                 amount = 0;
-
+               
             }
             else
             {
@@ -1140,8 +1140,8 @@ namespace WorldRefill
                     {
                         await Regen.AsyncGenerateChests(amount);
 
-                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Life Crystals");
-                        if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid [c/BCFF00:{realcount}] Life Crystals", 71, 8, 185);
+                        args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] Generated and hid {realcount} Chests");
+                        if (realcount != 0) TSPlayer.All.SendMessage($"[[c/FFFFFF:{Name}]] [c/BCFF00:{args.Player.Name}] has generated and hid [c/BCFF00:{realcount}] Chests", 71, 8, 185);
                         InformPlayers(args.Player.Name, args.Parameters[0]);
                     }
 
