@@ -39,7 +39,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < WorldRefill.config.GenerationMaxTries; trycount++)
                 {
                     if (!WorldRefill.IsProtected(tryX, tryY))
                     {
@@ -63,7 +63,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < WorldRefill.config.GenerationMaxTries; trycount++)
                 {
                     int tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
 
@@ -120,7 +120,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < WorldRefill.config.GenerationMaxTries; trycount++)
                 {
                     int tryX = WorldGen.genRand.Next(50, Main.maxTilesX - 50);
                     int tryY = WorldGen.genRand.Next((int)Main.worldSurface + 20, Main.UnderworldLayer);
@@ -150,7 +150,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < WorldRefill.config.GenerationMaxTries; trycount++)
                 {
                     int tryX = WorldGen.genRand.Next(1, Main.maxTilesX);
                     int tryY = WorldGen.genRand.Next((int)Main.worldSurface + 10, (int)Main.rockLayer);
@@ -181,7 +181,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < WorldRefill.config.GenerationMaxTries; trycount++)
                 {
                     int tryX = WorldGen.genRand.Next(200, Main.maxTilesX - 200);
                     int tryY = WorldGen.genRand.Next((int)Main.worldSurface, Main.UnderworldLayer - 100);
@@ -208,7 +208,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < WorldRefill.config.GenerationMaxTries; trycount++)
 
                 {
                     int tryX = WorldGen.genRand.Next(250, Main.maxTilesX - 250);
@@ -238,7 +238,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < WorldRefill.config.GenerationMaxTries; trycount++)
 
                 {
                     int tryX = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
@@ -266,7 +266,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < WorldRefill.config.GenerationMaxTries; trycount++)
 
                 {
                     int tryX = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
@@ -297,7 +297,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < WorldRefill.config.GenerationMaxTries; trycount++)
                 {
 
                     int tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
@@ -347,7 +347,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < WorldRefill.config.GenerationMaxTries; trycount++)
                 {
 
                     int tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
@@ -404,7 +404,7 @@ namespace WorldRefill
 
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < WorldRefill.config.GenerationMaxTries; trycount++)
                 {
 
                     int X = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
@@ -619,7 +619,7 @@ namespace WorldRefill
 
 
                 }
-                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < WorldRefill.config.GenerationMaxTries; trycount++)
                 {
                     //Get random number from 100 tiles each side
                     int X = WorldGen.genRand.Next(100, Main.maxTilesX - 100);
@@ -651,7 +651,7 @@ namespace WorldRefill
             WorldRefill.isTaskRunning = true;
             int realcount = 0;
             return Task.Run(() => {
-                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < WorldRefill.config.GenerationMaxTries; trycount++)
                 {
                     int tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
                     int tryY = WorldGen.genRand.Next(50, Main.UnderworldLayer);
@@ -718,7 +718,7 @@ namespace WorldRefill
             int realcount = 0;
             return Task.Run(() =>
             {
-                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < WorldRefill.config.GenerationMaxTries; trycount++)
                 {
                     int tryX = WorldGen.genRand.Next(200, Main.maxTilesX - 200);
                     int tryY = WorldGen.genRand.Next((int)Main.worldSurface - 150, Main.UnderworldLayer);
@@ -940,7 +940,7 @@ namespace WorldRefill
             WorldRefill.isTaskRunning = true;
             WorldRefill.realcount = 1;
            
-                if (Config.ConfigFile.UseInfiniteChests)
+                if (WorldRefill.config.UseInfiniteChests)
                 {
                     InfChestsDatabase WRConn = new InfChestsDatabase();
                     WRConn.DeleteChests(Main.worldID);
@@ -958,7 +958,7 @@ namespace WorldRefill
                 WorldRefill.isTaskRunning = true;
                 
 
-                if (!Config.ConfigFile.UseInfiniteChests)
+                if (!WorldRefill.config.UseInfiniteChests)
                 {
                     for (int x = 0; x < Main.chest.Length; x++)
                     {
@@ -1007,7 +1007,7 @@ namespace WorldRefill
             return Task.Run(() =>
             {
                 int realcount = 0;
-                for (int trycount = 0; trycount < Config.ConfigFile.GenerationMaxTries; trycount++)
+                for (int trycount = 0; trycount < WorldRefill.config.GenerationMaxTries; trycount++)
                 {
                     int contain;
                     contain = 0;
@@ -1130,7 +1130,7 @@ namespace WorldRefill
                     }
                 }
             }
-            if (Config.ConfigFile.UseInfiniteChests && Main.chest.Where(p => p != null).Count() > 0)
+            if (WorldRefill.config.UseInfiniteChests && Main.chest.Where(p => p != null).Count() > 0)
             {
                 InfChestsDatabase WRConn = new InfChestsDatabase();
                 WRConn.AddChests();

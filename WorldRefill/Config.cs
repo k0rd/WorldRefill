@@ -74,16 +74,17 @@ namespace WorldRefill
 
         public int GenerationMaxTries = 1000000;
         public bool UseInfiniteChests = false;
-        public bool GenInsideProtectedRegions = false;
+        public string InfiniteChestsDBType = "sqlite";
 
-
-
+    }
+    public class ConfigFunctions
+    { 
 
         // Setting this value higher may result in more lag when generating as this is the maximum amount of tries it will take to generate amenities.
 
         public static string savepath = "WorldRefill";
 
-        public static Config ConfigFile { get; set; }
+        
         // Config Code stolen from InanZed's DieMob
         #region Create
         private static void CreateConfig()
@@ -97,8 +98,8 @@ namespace WorldRefill
                 {
                     using (var sr = new StreamWriter(stream))
                     {
-                        ConfigFile = new Config();
-                        var configString = JsonConvert.SerializeObject(ConfigFile, Formatting.Indented);
+                        
+                        var configString = JsonConvert.SerializeObject(new Config(), Formatting.Indented);
                         sr.Write(configString);
                     }
                     stream.Close();
@@ -107,7 +108,7 @@ namespace WorldRefill
             catch (Exception ex)
             {
                 TShock.Log.ConsoleError(ex.Message);
-                ConfigFile = new Config();
+                WorldRefill.config = new Config();
             }
         }
         #endregion
@@ -124,7 +125,7 @@ namespace WorldRefill
                         using (var sr = new StreamReader(stream))
                         {
                             var configString = sr.ReadToEnd();
-                            ConfigFile = JsonConvert.DeserializeObject<Config>(configString);
+                            WorldRefill.config = JsonConvert.DeserializeObject<Config>(configString);
                             
                         }
                         stream.Close();

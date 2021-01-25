@@ -42,6 +42,9 @@ namespace WorldRefill
     [ApiVersion(2, 1)]
     public class WorldRefill : TerrariaPlugin
     {
+
+        public static Config config;
+
         public WorldRefill(Main game)
             : base(game)
         {
@@ -85,15 +88,15 @@ namespace WorldRefill
 
 
             #region Commands to Add
-          
+
             //Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoLake, "genlake"));			//lake
             //Commands.ChatCommands.Add(new Command("tshock.world.causeevents", DoMountain, "genmountain"));	//mountain
-   
+
             // Any other additions to 1.4
             #endregion
             #endregion
-
-            Config.ReadConfig();
+            
+            ConfigFunctions.ReadConfig();
 
             GeneralHooks.ReloadEvent += OnReload;
 
@@ -125,15 +128,16 @@ namespace WorldRefill
         // Config Reload
         private async void OnReload(ReloadEventArgs args)
         {
-            if (await Task.Run(() => Config.ReadConfig()))
+            if (await Task.Run(() => ConfigFunctions.ReadConfig()))
+            {
                 if (!args.Player.Active) args.Player.SendSuccessMessage($"[{Name}] {Name} Config reloaded.");
 
                 else args.Player.SendSuccessMessage($"[[c/FFFFFF:{Name}]] {Name} Config reloaded.");
-
+            }
             else
-                 if (!args.Player.Active) args.Player.SendErrorMessage($"[{Name}] Error reading config. Check log for details.");
+                if (!args.Player.Active) args.Player.SendErrorMessage($"[{Name}] Error reading config. Attempting to generate a new one...");
 
-            else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Error reading config. Check log for details.");
+                else args.Player.SendErrorMessage($"[[c/FFFFFF:{Name}]] Error reading config. Attempting to generate a new one...");
 
             return;
         }
@@ -1284,7 +1288,7 @@ namespace WorldRefill
         //Updating all players Reloads Tile Sections
         public static void InformPlayers(string player, string generator, bool hard = false)
         {
-            File.AppendAllText(Path.Combine(Config.savepath, "WRLog.txt"), $"[{DateTime.UtcNow}] / [WR Success] User {player} has Generated {realcount} {generator} on World {Main.worldID}, Seed {WorldGen._lastSeed}\n");
+            File.AppendAllText(Path.Combine(ConfigFunctions.savepath, "WRLog.txt"), $"[{DateTime.UtcNow}] / [WR Success] User {player} has Generated {realcount} {generator} on World {Main.worldID}, Seed {WorldGen._lastSeed}\n");
             foreach (TSPlayer person in TShock.Players)
             {
                 if ((person != null) && (person.Active))

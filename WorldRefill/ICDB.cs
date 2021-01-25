@@ -29,32 +29,37 @@ namespace WorldRefill
         {
             try
             {
-                switch (TShock.Config.StorageType.ToLowerInvariant())
+                switch (WorldRefill.config.InfiniteChestsDBType.ToLowerInvariant())
                 {
                     case "mysql":
-                        string[] host = TShock.Config.MySqlHost.Split(':');
-                        ChestDB = new MySqlConnection()
+                        MySqlConnectionStringBuilder ConnString = new MySqlConnectionStringBuilder
                         {
-                            ConnectionString = string.Format("Server={0}; Port={1}; Database={2}; Uid={3}; Pwd={4};",
-                                host[0],
-                                host.Length == 1 ? "3306" : host[1],
-                                TShock.Config.MySqlDbName,
-                                TShock.Config.MySqlUsername,
-                                TShock.Config.MySqlPassword)
+                            Server = TShock.Config.MySqlHost,
+                            Database = TShock.Config.MySqlDbName,
+                            UserID = TShock.Config.MySqlUsername,
+                            Password = TShock.Config.MySqlPassword
                         };
+
+                        ChestDB = new MySqlConnection(ConnString.ToString());
 
                         break;
                     case "sqlite":
-                        string sql = Path.Combine(TShock.SavePath, "InfChests3.sqlite");
-                        ChestDB = new SqliteConnection(string.Format("uri=file://{0},Version=3", sql));
-                        
+
+
+                        SqliteConnectionStringBuilder SqliteConnString = new SqliteConnectionStringBuilder
+                        {
+                            DataSource = Path.Combine(TShock.SavePath, "InfChests3.sqlite"),
+                            Version = 3
+                        };
+                        ChestDB = new SqliteConnection(SqliteConnString.ToString()); ;
+
 
                         break;
                 }
             }
             catch (Exception e)
             {
-                File.AppendAllText(Path.Combine(Config.savepath, "WRLog.txt"), $"[{DateTime.UtcNow}] / [WR ERROR] FAILED TO CONNECT TO DATABASE, EXCEPTION : {e.Message}\t IS THE MYSQL DATABASE ON?\n");
+                File.AppendAllText(Path.Combine(ConfigFunctions.savepath, "WRLog.txt"), $"[{DateTime.UtcNow}] / [WR ERROR] FAILED TO CONNECT TO DATABASE, EXCEPTION : {e.Message}\t IS THE MYSQL DATABASE ON?\n");
             }
 
         }
@@ -124,7 +129,8 @@ namespace WorldRefill
                 query = $"DELETE FROM InfChests3 WHERE Items = '{emptychest}' AND WorldID = {Main.worldID} AND Refill = -1;";
                 
                 ChestDB.Query(query);
-                return Task.FromResult(points);
+                return Task.FromResult(points)
+                ;
             });
 
         }
